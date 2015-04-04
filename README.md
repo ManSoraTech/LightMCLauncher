@@ -1,2 +1,2 @@
 # LightMCLauncher
-Only launch the Minecraft Client.
+It can only launch the Minecraft Client.
