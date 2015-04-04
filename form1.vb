@@ -1,3 +1,4 @@
+Imports Microsoft.Win32
 Imports System.IO
 Imports System
 Imports System.Diagnostics
@@ -120,9 +121,18 @@ Public Class Form1
 
 
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
-        ForgePath()
+        Dim str2() As String, str As String, file() As String, a As Integer, b As Integer
+        str = "D:\Games\1.7.10\.minecraft\libraries"
+        str2 = IO.Directory.GetDirectories(str)
+        file = IO.Directory.GetFiles(str)
+        Dim tmpstr() As String, tmpstr2() As String
+        While str2.Length > 0
+            tmpstr = IO.Directory.GetDirectories(str(a))
+            While tmpstr.Length > 0
+                tmpstr2(tmpstr.Length) = tmpstr(b)
+            End While
+        End While
 
-        '  Debug.WriteLine(CMD(strShell))
     End Sub
     Function CMD(ByVal Data As String) As String
         Try
@@ -144,25 +154,50 @@ Public Class Form1
             Return ""
         End Try
     End Function
-    Private Sub ForgePath()
+
+    Private Function ForgePath()
         '获取forge目录
         strForgePath = dirAimPathTemp.GetDirectories.GetValue(0).ToString
         strAimPath = dirAimPathTemp.ToString & strForgePath & "\"
-        Dim strMcPara As String, strTmpLib As String, strShell As String
-        strTmpLib = Environment.CurrentDirectory & "\.minecraft\libraries\"
+        Dim strMcPara As String, strLibPath As String = Environment.CurrentDirectory & "\.minecraft\libraries\", strShell As String
+        Dim strTmpLib As String = Environment.CurrentDirectory & "\.minecraft\libraries\"
         '设置附加参数
         strMcPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true -Djava.library.path=" & """" & ".minecraft\natives" & """" & " -cp"
         '设置Libraries文件
-        'strMcLibraries = """" & strTmpLib & "net\minecraftforge\forge\1.7.10-10.13.2.1291\forge-1.7.10-10.13.2.1291.jar;" & strTmpLib & "net\minecraft\launchwrapper\1.11\launchwrapper-1.11.jar;" & strTmpLib & "org\ow2\asm\asm-all\5.0.3\asm-all-5.0.3.jar;" & strTmpLib & "com\typesafe\akka\akka-actor_2.11\2.3.3\akka-actor_2.11-2.3.3.jar;" & strTmpLib & "com\typesafe\config\1.2.1\config-1.2.1.jar;" & strTmpLib & "org\scala-lang\scala-actors-migration_2.11\1.1.0\scala-actors-migration_2.11-1.1.0.jar;" & strTmpLib & "org\scala-lang\scala-compiler\2.11.1\scala-compiler-2.11.1.jar;" & strTmpLib & "org\scala-lang\plugins\scala-continuations-library_2.11\1.0.2\scala-continuations-library_2.11-1.0.2.jar;" & strTmpLib & "org\scala-lang\plugins\scala-continuations-plugin_2.11.1\1.0.2\scala-continuations-plugin_2.11.1-1.0.2.jar;" & strTmpLib & "org\scala-lang\scala-library\2.11.1\scala-library-2.11.1.jar;" & strTmpLib & "org\scala-lang\scala-parser-combinators_2.11\1.0.1\scala-parser-combinators_2.11-1.0.1.jar;" & strTmpLib & "org\scala-lang\scala-reflect\2.11.1\scala-reflect-2.11.1.jar;" & strTmpLib & "org\scala-lang\scala-swing_2.11\1.0.1\scala-swing_2.11-1.0.1.jar;" & strTmpLib & "org\scala-lang\scala-xml_2.11\1.0.2\scala-xml_2.11-1.0.2.jar;" & strTmpLib & "net\sf\jopt-simple\jopt-simple\4.5\jopt-simple-4.5.jar;" & strTmpLib & "lzma\lzma\0.0.1\lzma-0.0.1.jar;" & strTmpLib & "com\mojang\realms\1.3.5\realms-1.3.5.jar;" & strTmpLib & "org\apache\commons\commons-compress\1.8.1\commons-compress-1.8.1.jar;" & strTmpLib & "org\apache\httpcomponents\httpclient\4.3.3\httpclient-4.3.3.jar;" & strTmpLib & "commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar;" & strTmpLib & "org\apache\httpcomponents\httpcore\4.3.2\httpcore-4.3.2.jar;" & strTmpLib & "java3d\vecmath\1.3.1\vecmath-1.3.1.jar;" & strTmpLib & "net\sf\trove4j\trove4j\3.0.3\trove4j-3.0.3.jar;" & strTmpLib & "com\ibm\icu\icu4j-core-mojang\51.2\icu4j-core-mojang-51.2.jar;" & strTmpLib & "com\paulscode\codecjorbis\20101023\codecjorbis-20101023.jar;" & strTmpLib & "com\paulscode\codecwav\20101023\codecwav-20101023.jar;" & strTmpLib & "com\paulscode\libraryjavasound\20101123\libraryjavasound-20101123.jar;" & strTmpLib & "com\paulscode\librarylwjglopenal\20100824\librarylwjglopenal-20100824.jar;" & strTmpLib & "com\paulscode\soundsystem\20120107\soundsystem-20120107.jar;" & strTmpLib & "io\netty\netty-all\4.0.10.Final\netty-all-4.0.10.Final.jar;" & strTmpLib & "com\google\guava\guava\16.0\guava-16.0.jar;" & strTmpLib & "org\apache\commons\commons-lang3\3.2.1\commons-lang3-3.2.1.jar;" & strTmpLib & "commons-io\commons-io\2.4\commons-io-2.4.jar;" & strTmpLib & "commons-codec\commons-codec\1.9\commons-codec-1.9.jar;" & strTmpLib & "net\java\jinput\jinput\2.0.5\jinput-2.0.5.jar;" & strTmpLib & "net\java\jutils\jutils\1.0.0\jutils-1.0.0.jar;" & strTmpLib & "com\google\code\gson\gson\2.2.4\gson-2.2.4.jar;" & strTmpLib & "com\mojang\authlib\1.5.16\authlib-1.5.16.jar;" & strTmpLib & "org\apache\logging\log4j\log4j-api\2.0-beta9\log4j-api-2.0-beta9.jar;" & strTmpLib & "org\apache\logging\log4j\log4j-core\2.0-beta9\log4j-core-2.0-beta9.jar;" & strTmpLib & "org\lwjgl\lwjgl\lwjgl\2.9.1\lwjgl-2.9.1.jar;" & strTmpLib & "org\lwjgl\lwjgl\lwjgl_util\2.9.1\lwjgl_util-2.9.1.jar;" & strTmpLib & "tv\twitch\twitch\5.16\twitch-5.16.jar;" & strTmpLib & "tv\twitch\twitch\4.5\twitch-4.5.jar;" & Environment.CurrentDirectory & "\.minecraft\versions\" & "\" & strForgePath & "\" & strForgePath & ".jar" & """"
+        strMcLibraries = """" & strTmpLib & "net\minecraftforge\forge\1.7.10-10.13.2.1291\forge-1.7.10-10.13.2.1291.jar;" & strTmpLib & "net\minecraft\launchwrapper\1.11\launchwrapper-1.11.jar;" & strTmpLib & "org\ow2\asm\asm-all\5.0.3\asm-all-5.0.3.jar;" & strTmpLib & "com\typesafe\akka\akka-actor_2.11\2.3.3\akka-actor_2.11-2.3.3.jar;" & strTmpLib & "com\typesafe\config\1.2.1\config-1.2.1.jar;" & strTmpLib & "org\scala-lang\scala-actors-migration_2.11\1.1.0\scala-actors-migration_2.11-1.1.0.jar;" & strTmpLib & "org\scala-lang\scala-compiler\2.11.1\scala-compiler-2.11.1.jar;" & strTmpLib & "org\scala-lang\plugins\scala-continuations-library_2.11\1.0.2\scala-continuations-library_2.11-1.0.2.jar;" & strTmpLib & "org\scala-lang\plugins\scala-continuations-plugin_2.11.1\1.0.2\scala-continuations-plugin_2.11.1-1.0.2.jar;" & strTmpLib & "org\scala-lang\scala-library\2.11.1\scala-library-2.11.1.jar;" & strTmpLib & "org\scala-lang\scala-parser-combinators_2.11\1.0.1\scala-parser-combinators_2.11-1.0.1.jar;" & strTmpLib & "org\scala-lang\scala-reflect\2.11.1\scala-reflect-2.11.1.jar;" & strTmpLib & "org\scala-lang\scala-swing_2.11\1.0.1\scala-swing_2.11-1.0.1.jar;" & strTmpLib & "org\scala-lang\scala-xml_2.11\1.0.2\scala-xml_2.11-1.0.2.jar;" & strTmpLib & "net\sf\jopt-simple\jopt-simple\4.5\jopt-simple-4.5.jar;" & strTmpLib & "lzma\lzma\0.0.1\lzma-0.0.1.jar;" & strTmpLib & "com\mojang\realms\1.3.5\realms-1.3.5.jar;" & strTmpLib & "org\apache\commons\commons-compress\1.8.1\commons-compress-1.8.1.jar;" & strTmpLib & "org\apache\httpcomponents\httpclient\4.3.3\httpclient-4.3.3.jar;" & strTmpLib & "commons-logging\commons-logging\1.1.3\commons-logging-1.1.3.jar;" & strTmpLib & "org\apache\httpcomponents\httpcore\4.3.2\httpcore-4.3.2.jar;" & strTmpLib & "java3d\vecmath\1.3.1\vecmath-1.3.1.jar;" & strTmpLib & "net\sf\trove4j\trove4j\3.0.3\trove4j-3.0.3.jar;" & strTmpLib & "com\ibm\icu\icu4j-core-mojang\51.2\icu4j-core-mojang-51.2.jar;" & strTmpLib & "com\paulscode\codecjorbis\20101023\codecjorbis-20101023.jar;" & strTmpLib & "com\paulscode\codecwav\20101023\codecwav-20101023.jar;" & strTmpLib & "com\paulscode\libraryjavasound\20101123\libraryjavasound-20101123.jar;" & strTmpLib & "com\paulscode\librarylwjglopenal\20100824\librarylwjglopenal-20100824.jar;" & strTmpLib & "com\paulscode\soundsystem\20120107\soundsystem-20120107.jar;" & strTmpLib & "io\netty\netty-all\4.0.10.Final\netty-all-4.0.10.Final.jar;" & strTmpLib & "com\google\guava\guava\16.0\guava-16.0.jar;" & strTmpLib & "org\apache\commons\commons-lang3\3.2.1\commons-lang3-3.2.1.jar;" & strTmpLib & "commons-io\commons-io\2.4\commons-io-2.4.jar;" & strTmpLib & "commons-codec\commons-codec\1.9\commons-codec-1.9.jar;" & strTmpLib & "net\java\jinput\jinput\2.0.5\jinput-2.0.5.jar;" & strTmpLib & "net\java\jutils\jutils\1.0.0\jutils-1.0.0.jar;" & strTmpLib & "com\google\code\gson\gson\2.2.4\gson-2.2.4.jar;" & strTmpLib & "com\mojang\authlib\1.5.16\authlib-1.5.16.jar;" & strTmpLib & "org\apache\logging\log4j\log4j-api\2.0-beta9\log4j-api-2.0-beta9.jar;" & strTmpLib & "org\apache\logging\log4j\log4j-core\2.0-beta9\log4j-core-2.0-beta9.jar;" & strTmpLib & "org\lwjgl\lwjgl\lwjgl\2.9.1\lwjgl-2.9.1.jar;" & strTmpLib & "org\lwjgl\lwjgl\lwjgl_util\2.9.1\lwjgl_util-2.9.1.jar;" & strTmpLib & "tv\twitch\twitch\5.16\twitch-5.16.jar;" & strTmpLib & "tv\twitch\twitch\4.5\twitch-4.5.jar;" & Environment.CurrentDirectory & "\.minecraft\versions\" & "\" & strForgePath & "\" & strForgePath & ".jar" & """"
         '设置命令行
-        strShell = """" & System.Environment.GetEnvironmentVariable("JAVA_HOME") & "\bin\javaw.exe" & """" & " -Xmx" & TextBoxMem.Text & "M" & strMcPara & strLibraries(strTmpLib) & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgePath & " --gameDir .minecraft\versions\" & strForgePath & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
-    End Sub
-    Function strLibraries(ByVal strTmpLib As String) As String
-        Dim strMcLibraries As String
-        Dim strTmpFolders() As String = IO.Directory.GetDirectories(strTmpLib)
-        Dim strTmpFiles() As String = IO.Directory.GetFiles(strTmpLib)
+        strShell = """" & JavaHome() & """" & " -Xmx" & TextBoxMem.Text & "M" & strMcPara & strMcLibraries & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgePath & " --gameDir .minecraft\versions\" & strForgePath & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
+        Return strShell
+    End Function
 
+    Function strLibraries(ByVal strLibPath As String) As String
+        Dim strMcLibraries As String, a As Integer = 0, b As Integer = 0
+        Dim strTmpFolders() As String = IO.Directory.GetDirectories(strLibPath)
+        Dim strTmpFiles() As String = IO.Directory.GetFiles(strLibPath)
+        Dim strTmpFolders2() As String
+        Dim strTmpFiles2() As String
+        While strTmpFolders.Length > 0 'lib目录存在子目录
+            strTmpFolders2 = IO.Directory.GetDirectories(strTmpFolders(a)) '进入子目录
+            strTmpFiles2 = IO.Directory.GetFiles(strTmpFolders2(b)) '获取子目录文件
+            While strTmpFiles2.Length > 0
+                strMcLibraries = """" & strLibPath
+            End While
+        End While
         Return strMcLibraries
+    End Function
+
+    Private Sub ButtonRun_Click(sender As Object, e As EventArgs) Handles ButtonRun.Click
+        Dim shell As String = ForgePath()
+        Debug.WriteLine(CMD(shell))
+    End Sub
+
+    Private Function JavaHome()
+        '获取java路径
+        Dim strJavaHome As String, strJavaVer As String
+        strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment", True).GetValue("CurrentVersion")
+        strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment\" & strJavaVer, True).GetValue("JavaHome")
+        strJavaHome = strJavaVer & "\bin\javaw.exe"
+        Return strJavaHome
     End Function
 
 End Class
