@@ -13,12 +13,12 @@ Public Class Main
 
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles Me.Load
 
-        '获取注册表
+        'Get Reg
         If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True) IsNot Nothing Then
             TextBoxUsername.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Username")
             TextBoxParameter.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Parameter")
         End If
-        '获取服务器信息
+        'Get Server Info
         Dim ip As String
         Dim ipHost As IPHostEntry = Dns.GetHostEntry("mc.ime.moe")
         For Each ip1 As IPAddress In ipHost.AddressList
@@ -33,7 +33,7 @@ Public Class Main
         LabelServerVersion.Text = "服务器版本:" & a.MinecraftVersion
         LabelServerPlayerCount.Text = "当前在线人数:" & a.CurrentPlayerCount & "/" & a.MaxPlayerCount
 
-        '释放更新文件
+        'release update files
         Dim FileName2 As String = "MCUpdater.ini", FileName3 As String = "MCUpdater.exe"
         Dim bufint As Integer
         Dim bufbytes(0) As Byte
@@ -85,11 +85,11 @@ Public Class Main
             MessageBox.Show("读取MCUpdater.ini失败! " & ex.Message)
         End Try
 
-        '运行自动更新
+        'run update
         Process.Start("MCUpdater")
         TimerMCUexist.Enabled = True
 
-        '隐藏释放的文件
+        'hide files
         Dim fileInfo2 As New FileInfo(FileName2)
         fileInfo2.Attributes = FileAttributes.Hidden
         Dim fileInfo3 As New FileInfo(FileName3)
@@ -100,7 +100,7 @@ Public Class Main
 
     Private Sub MCLauncherEnd()
         TimerMCUend.Enabled = False
-        '删除释放的文件
+        'delete released files
         If IO.File.Exists("MCUpdater.exe") Then
             IO.File.Delete("MCUpdater.exe")
         End If
@@ -108,14 +108,13 @@ Public Class Main
             IO.File.Delete("MCUpdater.ini")
         End If
 
-        '隐藏升级信息文件
+        'hide xml file
         Dim StrMCUXml As String = "mcupdater.xml"
         Dim fileInfo As New FileInfo(StrMCUXml)
         If IO.File.Exists("mcupdater.xml") Then
             fileInfo.Attributes = FileAttributes.Hidden
         End If
 
-        '自杀
         Process.GetCurrentProcess().Kill()
 
     End Sub
@@ -137,7 +136,6 @@ Public Class Main
     End Sub
 
     Private Sub TimerAutoKill_Tick(sender As Object, e As EventArgs) Handles TimerAutoKill.Tick
-        '自杀
         Process.GetCurrentProcess().Kill()
     End Sub
 
@@ -148,24 +146,24 @@ Public Class Main
         Application.Exit()
     End Sub
 
-#Region "设置MC启动命令行"
+#Region "set MC launch command"
     Private Function GetMcPath()
         Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strAimPath As String, strForgePath As String, strDefaultPara As String
-        '获取forge目录
+        'get Forge path
         strForgePath = dirAimPathTemp.GetDirectories.GetValue(0).ToString
         strAimPath = dirAimPathTemp.ToString & strForgePath & "\"
         Dim strMcPara As String, strLibPath As String = Environment.CurrentDirectory & "\.minecraft\libraries\", strShell As String
         Dim strTmpLib As String = Environment.CurrentDirectory & "\.minecraft\libraries\"
-        '设置附加参数
+        'set parameter
         strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
         strMcPara = strDefaultPara & TextBoxParameter.Text & " -Djava.library.path=" & Chr(34) & ".minecraft\natives" & Chr(34) & " -cp "
-        '设置命令行
+        'set command
         strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgePath & "\" & strForgePath & ".jar" & Chr(34) & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgePath & " --gameDir .minecraft\versions\" & strForgePath & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
         Return strShell
     End Function
 #End Region
 
-#Region "设置注册表"
+#Region "Set Reg"
     Private Sub SetReg()
         If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True) Is Nothing Then
             Registry.CurrentUser.CreateSubKey("Software\LightMCLauncher")
@@ -187,7 +185,7 @@ Public Class Main
     End Sub
 #End Region
 
-#Region "运行MC"
+#Region "launch MC"
     Private Sub RunMc()
 
         Dim swRunMc As StreamWriter
@@ -202,7 +200,7 @@ Public Class Main
     End Sub
 #End Region
 
-#Region "获取java路径"
+#Region "get java path"
     Private Function GetJavaHome()
         Dim strJavaHome As String, strJavaVer As String
         strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment", True).GetValue("CurrentVersion")
@@ -212,7 +210,7 @@ Public Class Main
     End Function
 #End Region
 
-#Region "获取Libraries文件列表"
+#Region "get Libraries list"
     Function GetLibrariesFiles()
         'Function GetLibrariesFiles(ByVal strLibPath As String)
         'Dim strLibFiles() As String, i As Integer, strMcLibraries As String
@@ -271,7 +269,7 @@ Public Class Main
 
 
     Private Sub TimerRefreshInfo_Tick(sender As Object, e As EventArgs) Handles TimerRefreshInfo.Tick
-        '获取内存
+        'get MEM
         LabelTotalMemNum.Text = Int(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024) & " M"
         LabelAvailableMemNum.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) & " M"
         TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
