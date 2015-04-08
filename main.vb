@@ -142,7 +142,8 @@ Public Class Main
 
     Private Sub ButtonRunMc_Click(sender As Object, e As EventArgs) Handles ButtonRunMc.Click
         SetReg()
-        RunMc()
+        Shell(GetMcPath(), AppWinStyle.NormalFocus)
+        'RunMc()
         Application.Exit()
     End Sub
 
@@ -186,18 +187,18 @@ Public Class Main
 #End Region
 
 #Region "launch MC"
-    Private Sub RunMc()
+    'Private Sub RunMc()
 
-        Dim swRunMc As StreamWriter
-        swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\run.bat")
-        swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "exit")
-        swRunMc.Close()
-        swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
-        swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\run.bat" & """" & ",0")
-        swRunMc.Close()
-        Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
+    '    Dim swRunMc As StreamWriter
+    '    swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\run.bat")
+    '    swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "exit")
+    '    swRunMc.Close()
+    '    swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
+    '    swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\run.bat" & """" & ",0")
+    '    swRunMc.Close()
+    '    Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
 
-    End Sub
+    'End Sub
 #End Region
 
 #Region "get java path"
