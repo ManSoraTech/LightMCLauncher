@@ -18,6 +18,20 @@ Public Class Main
             TextBoxUsername.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Username")
             TextBoxParameter.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Parameter")
         End If
+        '获取服务器信息
+        Dim ip As String
+        Dim ipHost As IPHostEntry = Dns.GetHostEntry("mc.ime.moe")
+        For Each ip1 As IPAddress In ipHost.AddressList
+            ip = ip1.ToString
+            Exit For
+        Next
+        Dim a As eMZi.Gaming.Minecraft.MinecraftServerInfo
+        Dim c As IPAddress
+        c = IPAddress.Parse(ip)
+        Dim b As New IPEndPoint(c, 25565)
+        a = eMZi.Gaming.Minecraft.MinecraftServerInfo.GetServerInformation(b)
+        LabelServerVersion.Text = "服务器版本:" & a.MinecraftVersion
+        LabelServerPlayerCount.Text = "当前在线人数:" & a.CurrentPlayerCount & "/" & a.MaxPlayerCount
 
         '释放更新文件
         Dim FileName2 As String = "MCUpdater.ini", FileName3 As String = "MCUpdater.exe"
@@ -134,10 +148,6 @@ Public Class Main
         Application.Exit()
     End Sub
 
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        SetReg()
-    End Sub
-
 #Region "设置MC启动命令行"
     Private Function GetMcPath()
         Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strAimPath As String, strForgePath As String, strDefaultPara As String
@@ -250,31 +260,22 @@ Public Class Main
     End Function
 #End Region
 
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        SetReg()
+    End Sub
+
     Private Sub ButtonDefaultParameter_Click(sender As Object, e As EventArgs) Handles ButtonDefaultParameter.Click
         MessageBox.Show("-XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true ")
     End Sub
+
 
     Private Sub TimerRefreshInfo_Tick(sender As Object, e As EventArgs) Handles TimerRefreshInfo.Tick
         '获取内存
         LabelTotalMemNum.Text = Int(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024) & " M"
         LabelAvailableMemNum.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) & " M"
         TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
-        '获取服务器信息
-        Dim ip As String
-        Dim ipHost As IPHostEntry = Dns.GetHostEntry("mc.ime.moe")
-        For Each ip1 As IPAddress In ipHost.AddressList
-            ip = ip1.ToString
-            Exit For
-        Next
-        Dim a As eMZi.Gaming.Minecraft.MinecraftServerInfo
-        Dim c As IPAddress
-        c = IPAddress.Parse(ip)
-        Dim b As New IPEndPoint(c, 25565)
-        a = eMZi.Gaming.Minecraft.MinecraftServerInfo.GetServerInformation(b)
-        LabelServerVersion.Text = "服务器版本:" & a.MinecraftVersion
-        LabelServerPlayerCount.Text = "当前在线人数:" & a.CurrentPlayerCount & "/" & a.MaxPlayerCount
     End Sub
-
 End Class
 
 Namespace eMZi.Gaming.Minecraft
