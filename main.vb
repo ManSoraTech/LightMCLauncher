@@ -277,14 +277,7 @@ Public Class Main
                 json3 = json3 + " " + json2
                 Exit For
             End If
-            'If json2.Contains(Chr(34)) Then
-            '    a = InStr(json2, Chr(34))
-            '    json2 = Left(json2, a - 1)
-            'End If
-            'If json2.Contains("[        DISCUZ_CODE_2        ]quot;) Or (json2.Contains(".") And json2.Contains(Chr(34)) <> True) Then
-            '    json2 = "--" + json2
-            '    json3 = json3 + " " + json2
-            'End If
+
         Next
         json3 = json3.Replace("${game_directory}", ".minecraft\versions\" & strForgeVersion)
         json3 = json3.Replace("${assets_root}", ".minecraft\assets")
