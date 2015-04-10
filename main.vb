@@ -134,8 +134,6 @@ Public Class Main
     Private Sub TimerMCUexist_Tick(sender As Object, e As EventArgs) Handles TimerMCUexist.Tick
         If Process.GetProcessesByName("MCUpdater").Length = 0 Then
             TimerMCUend.Enabled = True
-
-
         End If
     End Sub
 
@@ -144,7 +142,7 @@ Public Class Main
         Me.Opacity = 100%
         ' Process.Start(strShell.ToString)
         ' Process.GetCurrentProcess().Kill()
-        ' MessageBox.Show("""" & System.Environment.GetEnvironmentVariable("JAVA_HOME") & "\bin\javaw.exe" & """" & " -Xmx" & TextBoxMem.Text & "M" & strMcPara & strMcLibraries & "net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgePath & " --gameDir .minecraft\versions\" & strForgePath & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker")
+        ' MessageBox.Show("""" & System.Environment.GetEnvironmentVariable("JAVA_HOME") & "\bin\javaw.exe" & """" & " -Xmx" & TextBoxMem.Text & "M" & strMcPara & strMcLibraries & "net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " &  strForgeVersion & " --gameDir .minecraft\versions\" &  strForgeVersion & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker")
     End Sub
 
     Private Sub TimerAutoKill_Tick(sender As Object, e As EventArgs) Handles TimerAutoKill.Tick
@@ -161,17 +159,24 @@ Public Class Main
 
 #Region "GetMcPath|set MC launch command"
     Private Function GetMcPath()
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strAimPath As String, strForgePath As String, strDefaultPara As String
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
         'get Forge path
-        strForgePath = dirAimPathTemp.GetDirectories.GetValue(0).ToString
-        strAimPath = dirAimPathTemp.ToString & strForgePath & "\"
+        strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
+        strAimPath = dirAimPathTemp.ToString & strForgeVersion & "\"
         Dim strMcPara As String, strLibPath As String = Environment.CurrentDirectory & "\.minecraft\libraries\", strShell As String
         Dim strTmpLib As String = Environment.CurrentDirectory & "\.minecraft\libraries\"
         'set parameter
         strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
         strMcPara = strDefaultPara & TextBoxParameter.Text & " -Djava.library.path=" & Chr(34) & ".minecraft\natives" & Chr(34) & " -cp "
-        'set command
-        strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgePath & "\" & strForgePath & ".jar" & Chr(34) & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgePath & " --gameDir .minecraft\versions\" & strForgePath & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
+        Dim json() As String
+        Dim MainClass As String
+        'json = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + "1.7.10-Forge10.13.2.1291" + "\" + "1.7.10-Forge10.13.2.1291" + ".json")
+        json = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
+        MainClass = json(Array.IndexOf(json, "mainClass") + 2)
+
+        'strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgeVersion & " --gameDir .minecraft\versions\" & strForgeVersion & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
+        strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " " & MainClass & " " & getminecraftArguments()
+
         Return strShell
     End Function
 #End Region
@@ -227,15 +232,13 @@ Public Class Main
         '    i += 1
         'Loop
         'Return strMcLibraries
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
         Dim libraries2(100) As String
         Dim mi As Integer = 0
         Dim libraries1 As Integer = 0
         Dim a As String
-        Dim json As String
-        Dim json1 As String()
-        json = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + "1.7.10-Forge10.13.2.1291" + "\" + "1.7.10-Forge10.13.2.1291" + ".json")
-        json1 = json.Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
-        For Each m As String In json1
+        Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
+        For Each m As String In json
             If m = "name" Then
                 mi = 4
             End If
@@ -253,18 +256,49 @@ Public Class Main
                 mlj = mlj + mname.Replace(":", "\") + "\"
                 mname = Strings.Right(m, m.Length - mmh)
                 mname = mname.Replace(":", "-") + ".jar;"
-
-
                 libraries2(libraries1) = mlj.Replace(Directory.GetCurrentDirectory() + "\.minecraft\libraries\", "") + mname.Replace(";", "")
-
                 libraries1 = libraries1 + 1
                 a = a + mlj + mname
+
             End If
         Next
         Return a
     End Function
 #End Region
 
+#Region "get minecraftArguments"
+    Private Function GetMinecraftArguments()
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
+        Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
+        Dim json3 As String, version As String = json(Array.IndexOf(json, "assets") + 2)
+
+        For Each json2 As String In json
+            If json2.Contains("--") Then
+                json3 = json3 + " " + json2
+                Exit For
+            End If
+            'If json2.Contains(Chr(34)) Then
+            '    a = InStr(json2, Chr(34))
+            '    json2 = Left(json2, a - 1)
+            'End If
+            'If json2.Contains("[        DISCUZ_CODE_2        ]quot;) Or (json2.Contains(".") And json2.Contains(Chr(34)) <> True) Then
+            '    json2 = "--" + json2
+            '    json3 = json3 + " " + json2
+            'End If
+        Next
+        json3 = json3.Replace("${game_directory}", ".minecraft")
+        json3 = json3.Replace("${assets_root}", ".minecraft\assets")
+        json3 = json3.Replace("${game_assets}", ".minecraft\assets")
+        json3 = json3.Replace("${user_properties}", "{}")
+        json3 = json3.Replace("${auth_player_name}", TextBoxUsername.Text)
+        json3 = json3.Replace("${version_name}", version)
+        If json3.Contains("${assets_index_name}") Then
+            json3 = json3.Replace("${assets_index_name}", "assetIndex " & version)
+        End If
+
+        Return json3
+    End Function
+#End Region
 
     Private Sub ButtonDefaultParameter_Click(sender As Object, e As EventArgs) Handles ButtonDefaultParameter.Click
         MessageBox.Show("-XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true ")
@@ -289,7 +323,7 @@ End Class
 
 Namespace eMZi.Gaming.Minecraft
 
-    ' thanks to mcmny@mcbbs & eMZi@github
+    'thanks to mcmny@mcbbs & eMZi@github
 
     Public NotInheritable Class MinecraftServerInfo
 
