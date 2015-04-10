@@ -310,9 +310,6 @@ Public Class Main
 
     End Sub
 
-    Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
-        Process.Start("http://tieba.baidu.com/home/main?id=bb13383737303438373634bb09&fr=userbar")
-    End Sub
 End Class
 
 Namespace eMZi.Gaming.Minecraft
