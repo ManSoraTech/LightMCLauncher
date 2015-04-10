@@ -27,7 +27,7 @@ Public Class Main
 
         'Get Server Info
         Dim ip As String
-        Dim ipHost As IPHostEntry = Dns.GetHostEntry("mc.ime.moe")
+        Dim ipHost As IPHostEntry = Dns.GetHostEntry("127.0.0.1")
         For Each ip1 As IPAddress In ipHost.AddressList
             ip = ip1.ToString
             Exit For
@@ -35,9 +35,9 @@ Public Class Main
         Dim MCServerInfo As eMZi.Gaming.Minecraft.MinecraftServerInfo
         Dim MCServerIPAddress As IPAddress
         MCServerIPAddress = IPAddress.Parse(ip)
-        Dim b As New IPEndPoint(MCServerIPAddress, 25565)
+        Dim MCServerPoint As New IPEndPoint(MCServerIPAddress, 25565)
         Try
-            MCServerInfo = eMZi.Gaming.Minecraft.MinecraftServerInfo.GetServerInformation(b)
+            MCServerInfo = eMZi.Gaming.Minecraft.MinecraftServerInfo.GetServerInformation(MCServerPoint)
             LabelServerVersion.Text = "服务器版本:" & MCServerInfo.MinecraftVersion
             LabelServerPlayerCount.Text = "在线人数:" & MCServerInfo.CurrentPlayerCount & "/" & MCServerInfo.MaxPlayerCount
         Catch UnavaliableServer As Exception
