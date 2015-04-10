@@ -27,7 +27,7 @@ Public Class Main
 
         'Get Server Info
         Dim ip As String
-        Dim ipHost As IPHostEntry = Dns.GetHostEntry("127.0.0.1")
+        Dim ipHost As IPHostEntry = Dns.GetHostEntry("mc.ime.moe")
         For Each ip1 As IPAddress In ipHost.AddressList
             ip = ip1.ToString
             Exit For
@@ -167,7 +167,7 @@ Public Class Main
         Dim strTmpLib As String = Environment.CurrentDirectory & "\.minecraft\libraries\"
         'set parameter
         strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
-        strMcPara = strDefaultPara & TextBoxParameter.Text & " -Djava.library.path=" & Chr(34) & ".minecraft\natives" & Chr(34) & " -cp "
+        strMcPara = strDefaultPara & TextBoxParameter.Text & " -Djava.library.path=" & Chr(34) & ".minecraft\Native" & Chr(34) & " -cp "
         Dim json() As String
         Dim MainClass As String
         'json = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + "1.7.10-Forge10.13.2.1291" + "\" + "1.7.10-Forge10.13.2.1291" + ".json")
@@ -198,12 +198,12 @@ Public Class Main
 
         Dim swRunMc As StreamWriter
         swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat")
-        swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "exit")
+        swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "pause")
         swRunMc.Close()
         swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
         swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
         swRunMc.Close()
-        Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
+        Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
 
     End Sub
 #End Region
@@ -286,14 +286,15 @@ Public Class Main
             '    json3 = json3 + " " + json2
             'End If
         Next
-        json3 = json3.Replace("${game_directory}", ".minecraft")
+        json3 = json3.Replace("${game_directory}", ".minecraft\versions\" & strForgeVersion)
         json3 = json3.Replace("${assets_root}", ".minecraft\assets")
         json3 = json3.Replace("${game_assets}", ".minecraft\assets")
+        json3 = json3.Replace("${user_type}", "Legacy")
         json3 = json3.Replace("${user_properties}", "{}")
         json3 = json3.Replace("${auth_player_name}", TextBoxUsername.Text)
-        json3 = json3.Replace("${version_name}", version)
+        json3 = json3.Replace("${version_name}", strForgeVersion)
         If json3.Contains("${assets_index_name}") Then
-            json3 = json3.Replace("${assets_index_name}", "assetIndex " & version)
+            json3 = json3.Replace("${assets_index_name}", version)
         End If
 
         Return json3
