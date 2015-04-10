@@ -13,25 +13,37 @@ Public Class Main
 
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles Me.Load
 
+        Try
+        Shell("java", AppWinStyle.Hide)
+        Catch NoJava As FileNotFoundException
+            MessageBox.Show("Cannot find Java.exe!Please set java path manually.")
+        End Try
+
         'Get Reg
         If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True) IsNot Nothing Then
             TextBoxUsername.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Username")
             TextBoxParameter.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Parameter")
         End If
+
         'Get Server Info
         Dim ip As String
-        Dim ipHost As IPHostEntry = Dns.GetHostEntry("mc.ime.moe")
+        Dim ipHost As IPHostEntry = Dns.GetHostEntry("127.0.0.1")
         For Each ip1 As IPAddress In ipHost.AddressList
             ip = ip1.ToString
             Exit For
         Next
-        Dim a As eMZi.Gaming.Minecraft.MinecraftServerInfo
-        Dim c As IPAddress
-        c = IPAddress.Parse(ip)
-        Dim b As New IPEndPoint(c, 25565)
-        a = eMZi.Gaming.Minecraft.MinecraftServerInfo.GetServerInformation(b)
-        LabelServerVersion.Text = "服务器版本:" & a.MinecraftVersion
-        LabelServerPlayerCount.Text = "当前在线人数:" & a.CurrentPlayerCount & "/" & a.MaxPlayerCount
+        Dim MCServerInfo As eMZi.Gaming.Minecraft.MinecraftServerInfo
+        Dim MCServerIPAddress As IPAddress
+        MCServerIPAddress = IPAddress.Parse(ip)
+        Dim b As New IPEndPoint(MCServerIPAddress, 25565)
+        Try
+            MCServerInfo = eMZi.Gaming.Minecraft.MinecraftServerInfo.GetServerInformation(b)
+            LabelServerVersion.Text = "服务器版本:" & MCServerInfo.MinecraftVersion
+            LabelServerPlayerCount.Text = "在线人数:" & MCServerInfo.CurrentPlayerCount & "/" & MCServerInfo.MaxPlayerCount
+        Catch UnavaliableServer As Exception
+            LabelServerVersion.Text = "Server Version:Error"
+            LabelServerPlayerCount.Text = "Current Player:Error"
+        End Try
 
         'release update files
         Dim FileName2 As String = "MCUpdater.ini", FileName3 As String = "MCUpdater.exe"
@@ -57,9 +69,9 @@ Public Class Main
             strm.Close()
 
         Catch ex As System.IO.IOException
-            MessageBox.Show("读取MCUpdater.exe失败! " & ex.Message)
+            MessageBox.Show("Relesae MCUpdater.exe failed!" & ex.Message)
         Catch ex As Exception
-            MessageBox.Show("读取MCUpdater.exe失败! " & ex.Message)
+            MessageBox.Show("Relesae MCUpdater.exe failed!" & ex.Message)
         End Try
 
         Try
@@ -80,9 +92,9 @@ Public Class Main
             strm.Close()
 
         Catch ex As System.IO.IOException
-            MessageBox.Show("读取MCUpdater.ini失败! " & ex.Message)
+            MessageBox.Show("Relesae MCUpdater.ini failed!" & ex.Message)
         Catch ex As Exception
-            MessageBox.Show("读取MCUpdater.ini失败! " & ex.Message)
+            MessageBox.Show("Relesae MCUpdater.ini failed!" & ex.Message)
         End Try
 
         'run update
@@ -142,12 +154,12 @@ Public Class Main
 
     Private Sub ButtonRunMc_Click(sender As Object, e As EventArgs) Handles ButtonRunMc.Click
         SetReg()
-        Shell(GetMcPath(), AppWinStyle.NormalFocus)
-        'RunMc()
+        'Shell(GetMcPath(), AppWinStyle.NormalNoFocus)
+        RunMc()
         Application.Exit()
     End Sub
 
-#Region "set MC launch command"
+#Region "GetMcPath|set MC launch command"
     Private Function GetMcPath()
         Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strAimPath As String, strForgePath As String, strDefaultPara As String
         'get Forge path
@@ -166,48 +178,42 @@ Public Class Main
 
 #Region "Set Reg"
     Private Sub SetReg()
+
         If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True) Is Nothing Then
             Registry.CurrentUser.CreateSubKey("Software\LightMCLauncher")
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Username", TextBoxUsername.Text)
-        Else
-            If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Username") Is Nothing Then
-                Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Username", TextBoxUsername.Text)
-            Else
-                Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Username", TextBoxUsername.Text)
-            End If
-
-            If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Parameter") Is Nothing Then
-                Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Parameter", TextBoxParameter.Text)
-            Else
-                Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Parameter", TextBoxParameter.Text)
-            End If
         End If
+        Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Username", TextBoxUsername.Text)
+        Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).SetValue("Parameter", TextBoxParameter.Text)
 
     End Sub
 #End Region
 
-#Region "launch MC"
-    'Private Sub RunMc()
+#Region "RunMC"
+    Private Sub RunMc()
 
-    '    Dim swRunMc As StreamWriter
-    '    swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\run.bat")
-    '    swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "exit")
-    '    swRunMc.Close()
-    '    swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
-    '    swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\run.bat" & """" & ",0")
-    '    swRunMc.Close()
-    '    Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
+        Dim swRunMc As StreamWriter
+        swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat")
+        swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "exit")
+        swRunMc.Close()
+        swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
+        swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
+        swRunMc.Close()
+        Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\run.vbs")
 
-    'End Sub
+    End Sub
 #End Region
 
 #Region "get java path"
     Private Function GetJavaHome()
-        Dim strJavaHome As String, strJavaVer As String
-        strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment", True).GetValue("CurrentVersion")
-        strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment\" & strJavaVer, True).GetValue("JavaHome")
-        strJavaHome = strJavaVer & "\bin\javaw.exe"
-        Return strJavaHome
+        Try
+            Dim strJavaHome As String, strJavaVer As String
+            strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment", True).GetValue("CurrentVersion")
+            strJavaVer = Registry.LocalMachine.OpenSubKey("SOFTWARE\javasoft\Java Runtime Environment\" & strJavaVer, True).GetValue("JavaHome")
+            strJavaHome = strJavaVer & "\bin\java.exe"
+            Return strJavaHome
+        Catch NoJava As Exception
+            MessageBox.Show("Cannot find Java.exe!")
+        End Try
     End Function
 #End Region
 
@@ -270,6 +276,14 @@ Public Class Main
         LabelTotalMemNum.Text = Int(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024) & " M"
         LabelAvailableMemNum.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) & " M"
         TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+    End Sub
+
+    Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
+        Process.Start("http://tieba.baidu.com/home/main?id=bb13383737303438373634bb09&fr=userbar")
     End Sub
 End Class
 
@@ -430,7 +444,8 @@ Namespace eMZi.Gaming.Minecraft
                 End Using
                 Return New MinecraftServerInfo(packetdat(3), Integer.Parse(packetdat(5)), Integer.Parse(packetdat(4)), (packetdat(2)))
             Catch ex As SocketException
-                Throw New Exception("There was a connection problem, look into InnerException for details", ex)
+                'MessageBox.Show("Connected server failed")
+                'Throw New Exception("There was a connection problem, look into InnerException for details", ex)
             Catch ex As InvalidDataException
                 Throw New Exception("The data received was invalid, look into InnerException for details", ex)
             Catch ex As Exception
