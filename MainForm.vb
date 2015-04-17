@@ -9,15 +9,19 @@ Imports System.Net.Sockets
 Imports System.Text
 Imports System.Text.RegularExpressions
 
-Public Class Main
+Public Class MainForm
 
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles Me.Load
 
+        TimerRefreshInfo_Tick()
+        TimerRefreshInfo.Enabled = True
         Try
-        Shell("java", AppWinStyle.Hide)
+            Shell("java", AppWinStyle.Hide)
         Catch NoJava As FileNotFoundException
             MessageBox.Show("Cannot find Java.exe!Please set java path manually.")
         End Try
+
+
 
         'Get Reg
         If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True) IsNot Nothing Then
@@ -159,12 +163,12 @@ Public Class Main
 
 #Region "GetMcPath|set MC launch command"
     Private Function GetMcPath()
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
         'get Forge path
         strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
         strAimPath = dirAimPathTemp.ToString & strForgeVersion & "\"
-        Dim strMcPara As String, strLibPath As String = Environment.CurrentDirectory & "\.minecraft\libraries\", strShell As String
-        Dim strTmpLib As String = Environment.CurrentDirectory & "\.minecraft\libraries\"
+        Dim strMcPara As String, strLibPath As String = Application.StartupPath & "\.minecraft\libraries\", strShell As String
+        Dim strTmpLib As String = Application.StartupPath & "\.minecraft\libraries\"
         'set parameter
         strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
         strMcPara = strDefaultPara & TextBoxParameter.Text & " -Djava.library.path=" & Chr(34) & ".minecraft\Native" & Chr(34) & " -cp "
@@ -175,7 +179,7 @@ Public Class Main
         MainClass = json(Array.IndexOf(json, "mainClass") + 2)
 
         'strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgeVersion & " --gameDir .minecraft\versions\" & strForgeVersion & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
-        strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " " & MainClass & " " & getminecraftArguments()
+        strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Application.StartupPath & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " " & MainClass & " " & GetMinecraftArguments()
 
         Return strShell
     End Function
@@ -196,13 +200,19 @@ Public Class Main
 #Region "RunMC"
     Private Sub RunMc()
 
-        Dim swRunMc As StreamWriter
-        swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat")
-        swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "pause")
-        swRunMc.Close()
-        swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
-        swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
-        swRunMc.Close()
+        Dim swRunMcBat As New IO.StreamWriter(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat", False, System.Text.Encoding.Default)
+        Dim swRunMcVbs As New IO.StreamWriter(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs", False, System.Text.Encoding.Default)
+        swRunMcBat.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "pause")
+        swRunMcBat.Close()
+        swRunMcVbs.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
+        swRunMcVbs.Close()
+        'Dim swRunMc As StreamWriter
+        'swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat")
+        'swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "pause")
+        'swRunMc.Close()
+        'swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
+        'swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
+        'swRunMc.Close()
         Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
 
     End Sub
@@ -232,7 +242,7 @@ Public Class Main
         '    i += 1
         'Loop
         'Return strMcLibraries
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
         Dim libraries2(100) As String
         Dim mi As Integer = 0
         Dim libraries1 As Integer = 0
@@ -268,7 +278,7 @@ Public Class Main
 
 #Region "get minecraftArguments"
     Private Function GetMinecraftArguments()
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Environment.CurrentDirectory & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
         Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
         Dim json3 As String, version As String = json(Array.IndexOf(json, "assets") + 2)
 
@@ -299,17 +309,27 @@ Public Class Main
     End Sub
 
 
-    Private Sub TimerRefreshInfo_Tick(sender As Object, e As EventArgs) Handles TimerRefreshInfo.Tick
+    Private Sub TimerRefreshInfo_Tick() Handles TimerRefreshInfo.Tick
         'get MEM
         LabelTotalMemNum.Text = Int(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024) & " M"
         LabelAvailableMemNum.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) & " M"
-        TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
+        If Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) > 4096 Then
+            TextBoxAvailableMem.Text = 4096
+        Else
+            TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
+        End If
+
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-
+        Dim update As New Form
+        Update.Show()
+        Me.Hide()
     End Sub
 
+    Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
+        Process.Start("http://tieba.baidu.com/home/main?id=bb13383737303438373634bb09&fr=userbar")
+    End Sub
 End Class
 
 Namespace eMZi.Gaming.Minecraft
