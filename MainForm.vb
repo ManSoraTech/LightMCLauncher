@@ -161,29 +161,6 @@ Public Class MainForm
         Application.Exit()
     End Sub
 
-#Region "GetMcPath|set MC launch command"
-    Private Function GetMcPath()
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
-        'get Forge path
-        strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
-        strAimPath = dirAimPathTemp.ToString & strForgeVersion & "\"
-        Dim strMcPara As String, strLibPath As String = Application.StartupPath & "\.minecraft\libraries\", strShell As String
-        Dim strTmpLib As String = Application.StartupPath & "\.minecraft\libraries\"
-        'set parameter
-        strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
-        strMcPara = strDefaultPara & TextBoxParameter.Text & " -Djava.library.path=" & Chr(34) & ".minecraft\Native" & Chr(34) & " -cp "
-        Dim json() As String
-        Dim MainClass As String
-        'json = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + "1.7.10-Forge10.13.2.1291" + "\" + "1.7.10-Forge10.13.2.1291" + ".json")
-        json = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
-        MainClass = json(Array.IndexOf(json, "mainClass") + 2)
-
-        'strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Environment.CurrentDirectory & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " net.minecraft.launchwrapper.Launch  --username " & TextBoxUsername.Text & " --version " & strForgeVersion & " --gameDir .minecraft\versions\" & strForgeVersion & " --assetsDir .minecraft\assets --assetIndex 1.7.10 --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties {} --userType Legacy --tweakClass cpw.mods.fml.common.launcher.FMLTweaker"
-        strShell = Chr(34) & GetJavaHome() & Chr(34) & " -Xmx" & TextBoxAvailableMem.Text & "M" & strMcPara & Chr(34) & GetLibrariesFiles() & Application.StartupPath & "\.minecraft\versions\" & strForgeVersion & "\" & strForgeVersion & ".jar" & Chr(34) & " " & MainClass & " " & GetMinecraftArguments()
-
-        Return strShell
-    End Function
-#End Region
 
 #Region "Set Reg"
     Private Sub SetReg()
@@ -199,20 +176,15 @@ Public Class MainForm
 
 #Region "RunMC"
     Private Sub RunMc()
+        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strForgeVersion As String
+        strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
 
         Dim swRunMcBat As New IO.StreamWriter(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat", False, System.Text.Encoding.Default)
         Dim swRunMcVbs As New IO.StreamWriter(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs", False, System.Text.Encoding.Default)
-        swRunMcBat.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "pause")
+        swRunMcBat.WriteLine(CoreFunction.Core(0, TextBoxAvailableMem.Text, strForgeVersion, TextBoxUsername.Text, TextBoxParameter.Text) & Chr(13) + Chr(10) & "pause")
         swRunMcBat.Close()
         swRunMcVbs.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
         swRunMcVbs.Close()
-        'Dim swRunMc As StreamWriter
-        'swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat")
-        'swRunMc.WriteLine(GetMcPath() & Chr(13) + Chr(10) & "pause")
-        'swRunMc.Close()
-        'swRunMc = File.CreateText(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
-        'swRunMc.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
-        'swRunMc.Close()
         Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
 
     End Sub
@@ -229,78 +201,6 @@ Public Class MainForm
         Catch NoJava As Exception
             MessageBox.Show("Cannot find Java.exe!")
         End Try
-    End Function
-#End Region
-
-#Region "get Libraries list"
-    Function GetLibrariesFiles()
-        'Function GetLibrariesFiles(ByVal strLibPath As String)
-        'Dim strLibFiles() As String, i As Integer, strMcLibraries As String
-        'strLibFiles = IO.Directory.GetFiles(strLibPath, "*.jar", SearchOption.AllDirectories)
-        'Do Until i = strLibFiles.Length
-        '    strMcLibraries = strMcLibraries & strLibFiles(i) & ";"
-        '    i += 1
-        'Loop
-        'Return strMcLibraries
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
-        Dim libraries2(100) As String
-        Dim mi As Integer = 0
-        Dim libraries1 As Integer = 0
-        Dim a As String
-        Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
-        For Each m As String In json
-            If m = "name" Then
-                mi = 4
-            End If
-            If mi > 0 Then
-                mi = mi - 1
-            End If
-            If mi = 1 And m.Contains(".") And m.Contains(":") Then
-
-                Dim mlj As String
-                Dim mname As String
-                Dim mmh As Integer = InStr(m, ":")
-                mlj = Strings.Left(m, mmh - 1)
-                mlj = Directory.GetCurrentDirectory() + "\.minecraft\libraries\" + mlj.Replace(".", "\")
-                mname = Strings.Right(m, m.Length - mmh + 1)
-                mlj = mlj + mname.Replace(":", "\") + "\"
-                mname = Strings.Right(m, m.Length - mmh)
-                mname = mname.Replace(":", "-") + ".jar;"
-                libraries2(libraries1) = mlj.Replace(Directory.GetCurrentDirectory() + "\.minecraft\libraries\", "") + mname.Replace(";", "")
-                libraries1 = libraries1 + 1
-                a = a + mlj + mname
-
-            End If
-        Next
-        Return a
-    End Function
-#End Region
-
-#Region "get minecraftArguments"
-    Private Function GetMinecraftArguments()
-        Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strForgeVersion As String = dirAimPathTemp.GetDirectories.GetValue(0).ToString
-        Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + strForgeVersion + "\" + strForgeVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
-        Dim json3 As String, version As String = json(Array.IndexOf(json, "assets") + 2)
-
-        For Each json2 As String In json
-            If json2.Contains("--") Then
-                json3 = json3 + " " + json2
-                Exit For
-            End If
-
-        Next
-        json3 = json3.Replace("${game_directory}", ".minecraft\versions\" & strForgeVersion)
-        json3 = json3.Replace("${assets_root}", ".minecraft\assets")
-        json3 = json3.Replace("${game_assets}", ".minecraft\assets")
-        json3 = json3.Replace("${user_type}", "Legacy")
-        json3 = json3.Replace("${user_properties}", "{}")
-        json3 = json3.Replace("${auth_player_name}", TextBoxUsername.Text)
-        json3 = json3.Replace("${version_name}", strForgeVersion)
-        If json3.Contains("${assets_index_name}") Then
-            json3 = json3.Replace("${assets_index_name}", version)
-        End If
-
-        Return json3
     End Function
 #End Region
 
@@ -323,7 +223,7 @@ Public Class MainForm
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
         Dim update As New Form
-        Update.Show()
+        update.Show()
         Me.Hide()
     End Sub
 
