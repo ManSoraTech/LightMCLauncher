@@ -10,8 +10,9 @@ Imports System.Text
 Imports System.Text.RegularExpressions
 
 Public Class MainForm
-
+    Dim CoreFunction As New CoreClass
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles Me.Load
+        iniSub(0)
 
         TimerRefreshInfo_Tick()
         TimerRefreshInfo.Enabled = True
@@ -20,14 +21,6 @@ Public Class MainForm
         Catch NoJava As FileNotFoundException
             MessageBox.Show("Cannot find Java.exe!Please set java path manually.")
         End Try
-
-
-
-        'Get Reg
-        If Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True) IsNot Nothing Then
-            TextBoxUsername.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Username")
-            TextBoxParameter.Text = Registry.CurrentUser.OpenSubKey("SOFTWARE\LightMCLauncher", True).GetValue("Parameter")
-        End If
 
         'Get Server Info
         Dim ip As String
@@ -155,7 +148,7 @@ Public Class MainForm
 
 
     Private Sub ButtonRunMc_Click(sender As Object, e As EventArgs) Handles ButtonRunMc.Click
-        SetReg()
+        iniSub(1)
         'Shell(GetMcPath(), AppWinStyle.NormalNoFocus)
         RunMc()
         Application.Exit()
@@ -222,184 +215,30 @@ Public Class MainForm
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        Dim update As New Form
-        update.Show()
-        Me.Hide()
+        'Dim update As New Form
+        'update.Show()
+        'Me.Hide()
     End Sub
 
     Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
         Process.Start("http://tieba.baidu.com/home/main?id=bb13383737303438373634bb09&fr=userbar")
     End Sub
+
+    Private Sub iniSub(ByVal SubMode As Integer)
+        Dim iniPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\LightMCLauncher\user.ini"
+        Select Case SubMode
+            Case 0
+                Try
+                    TextBoxUsername.Text = CoreFunction.GetINI("User", "Username", "", iniPath)
+                    TextBoxParameter.Text = CoreFunction.GetINI("User", "Parameter", "", iniPath)
+                Catch ex As Exception
+
+                End Try
+            Case 1
+                CoreFunction.WriteINI("User", "Username", TextBoxUsername.Text, iniPath)
+                CoreFunction.WriteINI("User", "Parameter", TextBoxParameter.Text, iniPath)
+        End Select
+    End Sub
 End Class
 
-Namespace eMZi.Gaming.Minecraft
 
-    'thanks to mcmny@mcbbs & eMZi@github
-
-    Public NotInheritable Class MinecraftServerInfo
-
-        Public Property ServerMotd() As String
-            ' Gets the server's MOTD
-            Get
-                Return m_ServerMotd
-            End Get
-            Private Set(ByVal value As String)
-                m_ServerMotd = value
-            End Set
-        End Property
-        Private m_ServerMotd As String
-
-
-        Public ReadOnly Property ServerMotdHtml() As String
-            ' Gets the server's MOTD converted into HTML
-            Get
-                Return Me.MotdHtml()
-            End Get
-        End Property
-
-
-        Public Property MaxPlayerCount() As Integer
-            ' Gets the server's max player count
-            Get
-                Return m_MaxPlayerCount
-            End Get
-            Private Set(ByVal value As Integer)
-                m_MaxPlayerCount = value
-            End Set
-        End Property
-        Private m_MaxPlayerCount As Integer
-
-        Public Property CurrentPlayerCount() As Integer
-            ' Gets the server's current player count
-            Get
-                Return m_CurrentPlayerCount
-            End Get
-            Private Set(ByVal value As Integer)
-                m_CurrentPlayerCount = value
-            End Set
-        End Property
-        Private m_CurrentPlayerCount As Integer
-
-        Public Property MinecraftVersion() As String
-            ' Gets the server's Minecraft version
-            Get
-                Return m_MinecraftVersion
-            End Get
-            Private Set(ByVal value As String)
-                m_MinecraftVersion = value
-            End Set
-        End Property
-        Private m_MinecraftVersion As String
-
-
-        Private Shared ReadOnly Property MinecraftColors() As Dictionary(Of Char, String)
-            ' Gets HTML colors associated with specific formatting codes
-            Get
-                Return New Dictionary(Of Char, String)() From { _
-                 {"0"c, "#000000"}, _
-                 {"1"c, "#0000AA"}, _
-                 {"2"c, "#00AA00"}, _
-                 {"3"c, "#00AAAA"}, _
-                 {"4"c, "#AA0000"}, _
-                 {"5"c, "#AA00AA"}, _
-                 {"6"c, "#FFAA00"}, _
-                 {"7"c, "#AAAAAA"}, _
-                 {"8"c, "#555555"}, _
-                 {"9"c, "#5555FF"}, _
-                 {"a"c, "#55FF55"}, _
-                 {"b"c, "#55FFFF"}, _
-                 {"c"c, "#FF5555"}, _
-                 {"d"c, "#FF55FF"}, _
-                 {"e"c, "#FFFF55"}, _
-                 {"f"c, "#FFFFFF"} _
-                }
-            End Get
-        End Property
-
-
-        Private Shared ReadOnly Property MinecraftStyles() As Dictionary(Of Char, String)
-            Get
-                Return New Dictionary(Of Char, String)() From { _
-                 {"k"c, "none;font-weight:normal;font-style:normal"}, _
-                 {"m"c, "line-through;font-weight:normal;font-style:normal"}, _
-                 {"l"c, "none;font-weight:900;font-style:normal"}, _
-                 {"n"c, "underline;font-weight:normal;font-style:normal;"}, _
-                 {"o"c, "none;font-weight:normal;font-style:italic;"}, _
-                 {"r"c, "none;font-weight:normal;font-style:normal;color:#FFFFFF;"} _
-                }
-            End Get
-        End Property
-
-
-        Private Sub New(ByVal motd As String, ByVal maxplayers As Integer, ByVal playercount As Integer, ByVal mcversion As String)
-            Me.ServerMotd = motd
-            Me.MaxPlayerCount = maxplayers
-            Me.CurrentPlayerCount = playercount
-            Me.MinecraftVersion = mcversion
-        End Sub
-
-
-        Private Function MotdHtml() As String
-            Dim regex As New Regex("§([k-oK-O])(.*?)(§[0-9a-fA-Fk-oK-OrR]|$)")
-            Dim s As String = Me.ServerMotd
-            While regex.IsMatch(s)
-                s = regex.Replace(s, Function(m)
-                                         Dim ast As String = "text-decoration:" & MinecraftStyles(m.Groups(1).Value(0))
-                                         Dim html As String = "<span style=""" & ast & """>" & m.Groups(2).Value & "</span>" & m.Groups(3).Value
-                                         Return html
-
-                                     End Function)
-            End While
-            regex = New Regex("§([0-9a-fA-F])(.*?)(§[0-9a-fA-FrR]|$)")
-            While regex.IsMatch(s)
-                s = regex.Replace(s, Function(m)
-                                         Dim ast As String = "color:" & MinecraftColors(m.Groups(1).Value(0))
-                                         Dim html As String = "<span style=""" & ast & """>" & m.Groups(2).Value & "</span>" & m.Groups(3).Value
-                                         Return html
-
-                                     End Function)
-            End While
-            Return s
-        End Function
-
-
-        Public Shared Function GetServerInformation(ByVal endpoint As IPEndPoint) As MinecraftServerInfo
-            If endpoint Is Nothing Then
-                Throw New ArgumentNullException("endpoint")
-            End If
-            Try
-                Dim packetdat As String() = Nothing
-                Using client As New TcpClient()
-                    client.Connect(endpoint)
-                    Using ns As NetworkStream = client.GetStream()
-                        ns.Write(New Byte() {&HFE, &H1}, 0, 2)
-                        Dim buff As Byte() = New Byte(2047) {}
-                        Dim br As Integer = ns.Read(buff, 0, buff.Length)
-                        If buff(0) <> &HFF Then
-                            Throw New InvalidDataException("Received invalid packet")
-                        End If
-                        Dim packet As String = Encoding.BigEndianUnicode.GetString(buff, 3, br - 3)
-                        If Not packet.StartsWith("§") Then
-                            Throw New InvalidDataException("Received invalid data")
-                        End If
-                        packetdat = packet.Split(ControlChars.NullChar)
-                        ns.Close()
-                    End Using
-                    client.Close()
-                End Using
-                Return New MinecraftServerInfo(packetdat(3), Integer.Parse(packetdat(5)), Integer.Parse(packetdat(4)), (packetdat(2)))
-            Catch ex As SocketException
-                'MessageBox.Show("Connected server failed")
-                'Throw New Exception("There was a connection problem, look into InnerException for details", ex)
-            Catch ex As InvalidDataException
-                Throw New Exception("The data received was invalid, look into InnerException for details", ex)
-            Catch ex As Exception
-                Throw New Exception("There was a problem, look into InnerException for details", ex)
-            End Try
-        End Function
-
-        Public Shared Function GetServerInformation(ByVal ip As IPAddress, ByVal port As Integer) As MinecraftServerInfo
-            Return GetServerInformation(New IPEndPoint(ip, port))
-        End Function
-    End Class
-End Namespace
