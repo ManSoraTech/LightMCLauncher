@@ -9,11 +9,13 @@ Imports System.Net.Sockets
 Imports System.Text
 Imports System.Text.RegularExpressions
 
-Public Class CoreFunction
-    Shared Function Core(ByVal FunctionMode As String, AvailableMem As Integer, FullVersion As String, Username As String, CustomParameter As String)
+
+Public Class CoreClass
+
+    Public Function Core(ByVal FunctionMode As Integer, Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "")
         Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
         Select Case FunctionMode
-            Case "0"
+            Case 0
 
                 Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
                 'get Forge path
@@ -28,11 +30,11 @@ Public Class CoreFunction
                 MinecraftJar = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
                 MainClass = json(Array.IndexOf(json, "mainClass") + 2)
 
-                strShell = Chr(34) & "java.exe" & Chr(34) & " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", 0, FullVersion, "", "") & MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", 0, FullVersion, Username, "")
+                strShell = Chr(34) & "java.exe" & Chr(34) & " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) & MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
                 Return strShell
 
 
-            Case "1" 'GetMinecraftLibrariesFiles
+            Case 1 'GetMinecraftLibrariesFiles
                 Dim i As Integer = 0
                 Dim MinecraftLibrariesFiles As String
                 For Each Keyword As String In json
@@ -40,8 +42,8 @@ Public Class CoreFunction
                     i += 1
                     If Keyword = "name" Then
                         MiddleNumber = InStr(json(i + 1), ":")
-                        LeftString = Strings.Left(json(i + 1), MiddleNumber - 1)
-                        RightString = Strings.Right(json(i + 1), json(i + 1).Length - MiddleNumber)
+                        LeftString = Left(json(i + 1), MiddleNumber - 1)
+                        RightString = Right(json(i + 1), json(i + 1).Length - MiddleNumber)
                         LeftString = Replace(LeftString, ".", "\")
                         Dim RightString2() = RightString.Split({Chr(58)})
                         MinecraftLibrariesFiles = Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + RightString2(0) + "\" + RightString2(1) + "\" + RightString2(0) + "-" + RightString2(1) + ".jar" + ";" + MinecraftLibrariesFiles
@@ -50,7 +52,7 @@ Public Class CoreFunction
                 Next
                 Return MinecraftLibrariesFiles
 
-            Case "2" 'GetMinecraftArguments
+            Case 2 'GetMinecraftArguments
                 Dim MinecraftArguments As String, version As String = json(Array.IndexOf(json, "assets") + 2)
 
                 For Each json2 As String In json
@@ -74,4 +76,191 @@ Public Class CoreFunction
                 Return MinecraftArguments
         End Select
     End Function
+
+    Private Declare Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Int32, ByVal lpFileName As String) As Int32
+    Private Declare Function WritePrivateProfileString Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpString As String, ByVal lpFileName As String) As Int32
+
+    Public Function GetINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As String
+        Dim Str As String = LSet(Str, 256)
+        GetPrivateProfileString(Section, AppName, lpDefault, Str, Len(Str), FileName)
+        Return Left(Str, InStr(Str, Chr(0)) - 1)
+    End Function
+
+    Public Function WriteINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As Long
+        WriteINI = WritePrivateProfileString(Section, AppName, lpDefault, FileName)
+    End Function
 End Class
+
+
+
+Namespace eMZi.Gaming.Minecraft
+
+    'thanks to mcmny@mcbbs & eMZi@github
+
+    Public NotInheritable Class MinecraftServerInfo
+
+        Public Property ServerMotd() As String
+            ' Gets the server's MOTD
+            Get
+                Return m_ServerMotd
+            End Get
+            Private Set(ByVal value As String)
+                m_ServerMotd = value
+            End Set
+        End Property
+        Private m_ServerMotd As String
+
+
+        Public ReadOnly Property ServerMotdHtml() As String
+            ' Gets the server's MOTD converted into HTML
+            Get
+                Return Me.MotdHtml()
+            End Get
+        End Property
+
+
+        Public Property MaxPlayerCount() As Integer
+            ' Gets the server's max player count
+            Get
+                Return m_MaxPlayerCount
+            End Get
+            Private Set(ByVal value As Integer)
+                m_MaxPlayerCount = value
+            End Set
+        End Property
+        Private m_MaxPlayerCount As Integer
+
+        Public Property CurrentPlayerCount() As Integer
+            ' Gets the server's current player count
+            Get
+                Return m_CurrentPlayerCount
+            End Get
+            Private Set(ByVal value As Integer)
+                m_CurrentPlayerCount = value
+            End Set
+        End Property
+        Private m_CurrentPlayerCount As Integer
+
+        Public Property MinecraftVersion() As String
+            ' Gets the server's Minecraft version
+            Get
+                Return m_MinecraftVersion
+            End Get
+            Private Set(ByVal value As String)
+                m_MinecraftVersion = value
+            End Set
+        End Property
+        Private m_MinecraftVersion As String
+
+
+        Private Shared ReadOnly Property MinecraftColors() As Dictionary(Of Char, String)
+            ' Gets HTML colors associated with specific formatting codes
+            Get
+                Return New Dictionary(Of Char, String)() From { _
+                 {"0"c, "#000000"}, _
+                 {"1"c, "#0000AA"}, _
+                 {"2"c, "#00AA00"}, _
+                 {"3"c, "#00AAAA"}, _
+                 {"4"c, "#AA0000"}, _
+                 {"5"c, "#AA00AA"}, _
+                 {"6"c, "#FFAA00"}, _
+                 {"7"c, "#AAAAAA"}, _
+                 {"8"c, "#555555"}, _
+                 {"9"c, "#5555FF"}, _
+                 {"a"c, "#55FF55"}, _
+                 {"b"c, "#55FFFF"}, _
+                 {"c"c, "#FF5555"}, _
+                 {"d"c, "#FF55FF"}, _
+                 {"e"c, "#FFFF55"}, _
+                 {"f"c, "#FFFFFF"} _
+                }
+            End Get
+        End Property
+
+
+        Private Shared ReadOnly Property MinecraftStyles() As Dictionary(Of Char, String)
+            Get
+                Return New Dictionary(Of Char, String)() From { _
+                 {"k"c, "none;font-weight:normal;font-style:normal"}, _
+                 {"m"c, "line-through;font-weight:normal;font-style:normal"}, _
+                 {"l"c, "none;font-weight:900;font-style:normal"}, _
+                 {"n"c, "underline;font-weight:normal;font-style:normal;"}, _
+                 {"o"c, "none;font-weight:normal;font-style:italic;"}, _
+                 {"r"c, "none;font-weight:normal;font-style:normal;color:#FFFFFF;"} _
+                }
+            End Get
+        End Property
+
+
+        Private Sub New(ByVal motd As String, ByVal maxplayers As Integer, ByVal playercount As Integer, ByVal mcversion As String)
+            Me.ServerMotd = motd
+            Me.MaxPlayerCount = maxplayers
+            Me.CurrentPlayerCount = playercount
+            Me.MinecraftVersion = mcversion
+        End Sub
+
+
+        Private Function MotdHtml() As String
+            Dim regex As New Regex("§([k-oK-O])(.*?)(§[0-9a-fA-Fk-oK-OrR]|$)")
+            Dim s As String = Me.ServerMotd
+            While regex.IsMatch(s)
+                s = regex.Replace(s, Function(m)
+                                         Dim ast As String = "text-decoration:" & MinecraftStyles(m.Groups(1).Value(0))
+                                         Dim html As String = "<span style=""" & ast & """>" & m.Groups(2).Value & "</span>" & m.Groups(3).Value
+                                         Return html
+
+                                     End Function)
+            End While
+            regex = New Regex("§([0-9a-fA-F])(.*?)(§[0-9a-fA-FrR]|$)")
+            While regex.IsMatch(s)
+                s = regex.Replace(s, Function(m)
+                                         Dim ast As String = "color:" & MinecraftColors(m.Groups(1).Value(0))
+                                         Dim html As String = "<span style=""" & ast & """>" & m.Groups(2).Value & "</span>" & m.Groups(3).Value
+                                         Return html
+
+                                     End Function)
+            End While
+            Return s
+        End Function
+
+
+        Public Shared Function GetServerInformation(ByVal endpoint As IPEndPoint) As MinecraftServerInfo
+            If endpoint Is Nothing Then
+                Throw New ArgumentNullException("endpoint")
+            End If
+            Try
+                Dim packetdat As String() = Nothing
+                Using client As New TcpClient()
+                    client.Connect(endpoint)
+                    Using ns As NetworkStream = client.GetStream()
+                        ns.Write(New Byte() {&HFE, &H1}, 0, 2)
+                        Dim buff As Byte() = New Byte(2047) {}
+                        Dim br As Integer = ns.Read(buff, 0, buff.Length)
+                        If buff(0) <> &HFF Then
+                            Throw New InvalidDataException("Received invalid packet")
+                        End If
+                        Dim packet As String = Encoding.BigEndianUnicode.GetString(buff, 3, br - 3)
+                        If Not packet.StartsWith("§") Then
+                            Throw New InvalidDataException("Received invalid data")
+                        End If
+                        packetdat = packet.Split(ControlChars.NullChar)
+                        ns.Close()
+                    End Using
+                    client.Close()
+                End Using
+                Return New MinecraftServerInfo(packetdat(3), Integer.Parse(packetdat(5)), Integer.Parse(packetdat(4)), (packetdat(2)))
+            Catch ex As SocketException
+                'MessageBox.Show("Connected server failed")
+                'Throw New Exception("There was a connection problem, look into InnerException for details", ex)
+            Catch ex As InvalidDataException
+                Throw New Exception("The data received was invalid, look into InnerException for details", ex)
+            Catch ex As Exception
+                Throw New Exception("There was a problem, look into InnerException for details", ex)
+            End Try
+        End Function
+
+        Public Shared Function GetServerInformation(ByVal ip As IPAddress, ByVal port As Integer) As MinecraftServerInfo
+            Return GetServerInformation(New IPEndPoint(ip, port))
+        End Function
+    End Class
+End Namespace
