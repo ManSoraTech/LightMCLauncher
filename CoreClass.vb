@@ -24,13 +24,13 @@ Public Class CoreClass
                 Dim strMcPara As String, strLibPath As String = Application.StartupPath & "\.minecraft\libraries\", strShell As String
                 Dim strTmpLib As String = Application.StartupPath & "\.minecraft\libraries\"
                 'set parameter
-                strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
-                strMcPara = strDefaultPara & CustomParameter & " -Djava.library.path=" & Chr(34) & ".minecraft\Native" & Chr(34)
+                strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
+                strMcPara = strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\Native" & Chr(34)
                 Dim MainClass As String, MinecraftJar As String
                 MinecraftJar = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
                 MainClass = json(Array.IndexOf(json, "mainClass") + 2)
 
-                strShell = Chr(34) & "java.exe" & Chr(34) & " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) & MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
+                strShell = Chr(34) & "java.exe" & Chr(34) & " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
                 Return strShell
 
 
@@ -46,10 +46,11 @@ Public Class CoreClass
                         RightString = Right(json(i + 1), json(i + 1).Length - MiddleNumber)
                         LeftString = Replace(LeftString, ".", "\")
                         Dim RightString2() = RightString.Split({Chr(58)})
-                        MinecraftLibrariesFiles = Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + RightString2(0) + "\" + RightString2(1) + "\" + RightString2(0) + "-" + RightString2(1) + ".jar" + ";" + MinecraftLibrariesFiles
-
+                        MinecraftLibrariesFiles = MinecraftLibrariesFiles + ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + RightString2(0) + "\" + RightString2(1) + "\" + RightString2(0) + "-" + RightString2(1) + ".jar"
                     End If
                 Next
+                MinecraftLibrariesFiles = Right(MinecraftLibrariesFiles, Len(MinecraftLibrariesFiles) - 1)
+
                 Return MinecraftLibrariesFiles
 
             Case 2 'GetMinecraftArguments
