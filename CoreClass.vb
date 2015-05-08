@@ -12,6 +12,38 @@ Imports System.Text.RegularExpressions
 
 Public Class CoreClass
 
+    Public Function Down(ByVal strURL As String, strFileName As String)
+        If Strings.Right(strURL, 1) <> "/" Then strURL += "/"
+        Dim getRequest As HttpWebRequest = WebRequest.Create(strURL)
+        getRequest.Method = "GET"
+        getRequest.Accept = "*/*"
+        getRequest.UserAgent = "LightMCLauncher/0.1"
+        getRequest.KeepAlive = True
+        getRequest.Timeout = 8000
+        getRequest.AllowAutoRedirect = True
+        getRequest.CookieContainer = New CookieContainer()
+
+        Dim getResponse As HttpWebResponse = getRequest.GetResponse()
+
+
+        Dim fs As FileStream
+        Dim s As Stream = getResponse.GetResponseStream()
+        Dim bufint As Integer
+        Dim bufbytes(0) As Byte
+        fs = File.OpenWrite(strFileName)
+
+        Do
+            bufint = s.ReadByte()
+            If bufint = -1 Then Exit Do
+            bufbytes(0) = Convert.ToByte(bufint)
+            fs.Write(bufbytes, 0, bufbytes.Length)
+        Loop
+
+        fs.Close()
+        fs.Dispose()
+        s.Close()
+    End Function
+
     Public Function Core(ByVal FunctionMode As Integer, Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "")
         Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
         Select Case FunctionMode
@@ -41,15 +73,20 @@ Public Class CoreClass
                     Dim RightString As String, LeftString As String, MiddleNumber As Integer
                     i += 1
                     If Keyword = "name" Then
-                        MiddleNumber = InStr(json(i + 1), ":")
-                        LeftString = Left(json(i + 1), MiddleNumber - 1)
-                        RightString = Right(json(i + 1), json(i + 1).Length - MiddleNumber)
-                        LeftString = Replace(LeftString, ".", "\")
-                        Dim RightString2() = RightString.Split({Chr(58)})
-                        MinecraftLibrariesFiles = MinecraftLibrariesFiles + ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + RightString2(0) + "\" + RightString2(1) + "\" + RightString2(0) + "-" + RightString2(1) + ".jar"
+                        Try
+                            MiddleNumber = InStr(json(i + 1), ":")
+                            LeftString = Strings.Left(json(i + 1), MiddleNumber - 1)
+                            RightString = Strings.Right(json(i + 1), json(i + 1).Length - MiddleNumber)
+                            LeftString = Replace(LeftString, ".", "\")
+                            Dim RightString2() = RightString.Split({Chr(58)})
+                            MinecraftLibrariesFiles = MinecraftLibrariesFiles + ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + RightString2(0) + "\" + RightString2(1) + "\" + RightString2(0) + "-" + RightString2(1) + ".jar"
+                        Catch ex As Exception
+                            MessageBox.Show(json(i + 1))
+                        End Try
                     End If
                 Next
-                MinecraftLibrariesFiles = Right(MinecraftLibrariesFiles, Len(MinecraftLibrariesFiles) - 1)
+                MinecraftLibrariesFiles = Strings.Right(MinecraftLibrariesFiles, MinecraftLibrariesFiles.Length - 1)
+                'MinecraftLibrariesFiles = Right(MinecraftLibrariesFiles, Len(MinecraftLibrariesFiles) - 1)
 
                 Return MinecraftLibrariesFiles
 
