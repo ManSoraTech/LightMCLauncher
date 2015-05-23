@@ -14,12 +14,19 @@ Public Class MainForm
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles Me.Load
         iniSub(0)
 
+        If Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) > 4096 Then
+            TextBoxAvailableMem.Text = 4096
+        Else
+            TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
+        End If
+
         TimerRefreshInfo_Tick()
         TimerRefreshInfo.Enabled = True
         Try
             Shell("java", AppWinStyle.Hide)
         Catch NoJava As FileNotFoundException
             MessageBox.Show("Cannot find Java.exe!Please set java path manually.")
+            tbxJava.Text = "Please set java path!"
         End Try
 
         'Get Server Info
@@ -50,7 +57,7 @@ Public Class MainForm
 
         Try
             Dim Asm As Reflection.Assembly = Reflection.Assembly.GetExecutingAssembly()
-            Dim strm As Stream = Asm.GetManifestResourceStream( _
+            Dim strm As Stream = Asm.GetManifestResourceStream(
                          Asm.GetName().Name + "." + FileName3)
             fs = File.OpenWrite("MCUpdater.exe")
 
@@ -73,7 +80,7 @@ Public Class MainForm
 
         Try
             Dim Asm As Reflection.Assembly = Reflection.Assembly.GetExecutingAssembly()
-            Dim strm As Stream = Asm.GetManifestResourceStream( _
+            Dim strm As Stream = Asm.GetManifestResourceStream(
                          Asm.GetName().Name + "." + FileName2)
             fs = File.OpenWrite("MCUpdater.ini")
 
@@ -147,14 +154,6 @@ Public Class MainForm
     End Sub
 
 
-    Private Sub ButtonRunMc_Click(sender As Object, e As EventArgs) Handles ButtonRunMc.Click
-        iniSub(1)
-        'Shell(GetMcPath(), AppWinStyle.NormalNoFocus)
-        RunMc()
-        Application.Exit()
-    End Sub
-
-
 #Region "Set Reg"
     Private Sub SetReg()
 
@@ -171,14 +170,13 @@ Public Class MainForm
     Private Sub RunMc()
         Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strForgeVersion As String
         strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
-
-        Dim swRunMcBat As New IO.StreamWriter(System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat", False, System.Text.Encoding.Default)
-        Dim swRunMcVbs As New IO.StreamWriter(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs", False, System.Text.Encoding.Default)
-        swRunMcBat.WriteLine(CoreFunction.Core(0, TextBoxAvailableMem.Text, strForgeVersion, TextBoxUsername.Text, TextBoxParameter.Text) & Chr(13) + Chr(10) & "pause")
+        Dim swRunMcBat As New IO.StreamWriter(Environment.GetEnvironmentVariable("temp") & "\runmc.bat", False, System.Text.Encoding.Default)
+        Dim swRunMcVbs As New IO.StreamWriter(Environment.GetEnvironmentVariable("temp") & "\runmc.vbs", False, System.Text.Encoding.Default)
+        swRunMcBat.WriteLine(CoreFunction.Core(0, TextBoxAvailableMem.Text, strForgeVersion, TextBoxUsername.Text, TextBoxParameter.Text, tbxJava.Text) & Chr(13) + Chr(10) & "pause")
         swRunMcBat.Close()
-        swRunMcVbs.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & System.Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
+        swRunMcVbs.WriteLine("set ws=wscript.createobject(" & """" & "wscript.shell" & """" & ") " & Chr(13) + Chr(10) & "ws.run " & """" & Environment.GetEnvironmentVariable("temp") & "\runmc.bat" & """" & ",0")
         swRunMcVbs.Close()
-        Process.Start(System.Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
+        Process.Start(Environment.GetEnvironmentVariable("temp") & "\runmc.vbs")
 
     End Sub
 #End Region
@@ -197,20 +195,12 @@ Public Class MainForm
     End Function
 #End Region
 
-    Private Sub ButtonDefaultParameter_Click(sender As Object, e As EventArgs) Handles ButtonDefaultParameter.Click
-        MessageBox.Show("-XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true ")
-    End Sub
 
 
     Private Sub TimerRefreshInfo_Tick() Handles TimerRefreshInfo.Tick
         'get MEM
         LabelTotalMemNum.Text = Int(My.Computer.Info.TotalPhysicalMemory / 1024 / 1024) & " M"
         LabelAvailableMemNum.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) & " M"
-        If Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024) > 4096 Then
-            TextBoxAvailableMem.Text = 4096
-        Else
-            TextBoxAvailableMem.Text = Int(My.Computer.Info.AvailablePhysicalMemory / 1024 / 1024 * 0.9)
-        End If
 
     End Sub
 
@@ -218,26 +208,59 @@ Public Class MainForm
         'Dim update As New Form
         'update.Show()
         'Me.Hide()
+        'MessageBox.Show(File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries))
     End Sub
 
-    Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
-        Process.Start("http://tieba.baidu.com/home/main?id=bb13383737303438373634bb09&fr=userbar")
-    End Sub
 
     Private Sub iniSub(ByVal SubMode As Integer)
-        Dim iniPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\LightMCLauncher\user.ini"
+        'Dim iniPath As String = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\LightMCLauncher\user.ini"
+        Dim iniPath As String = Application.StartupPath + "\LightMCLauncher\user.ini"
+        If Directory.Exists(Application.StartupPath + "\LightMCLauncher") = False Then Directory.CreateDirectory(Application.StartupPath + "\LightMCLauncher")
+
         Select Case SubMode
             Case 0
                 Try
                     TextBoxUsername.Text = CoreFunction.GetINI("User", "Username", "", iniPath)
                     TextBoxParameter.Text = CoreFunction.GetINI("User", "Parameter", "", iniPath)
+                    tbxJava.Text = CoreFunction.GetINI("User", "Java", "", iniPath)
                 Catch ex As Exception
 
                 End Try
             Case 1
                 CoreFunction.WriteINI("User", "Username", TextBoxUsername.Text, iniPath)
                 CoreFunction.WriteINI("User", "Parameter", TextBoxParameter.Text, iniPath)
+                CoreFunction.WriteINI("User", "Java", tbxJava.Text, iniPath)
         End Select
+    End Sub
+
+
+    Private Sub ContextMenuStrip1_Opening(sender As Object, e As CancelEventArgs) Handles ContextMenuStrip1.Opening
+
+    End Sub
+
+    Private Sub LabelTotalMemNum_Click(sender As Object, e As EventArgs) Handles LabelTotalMemNum.Click
+
+    End Sub
+
+    Private Sub LabelAvailableMemNum_Click(sender As Object, e As EventArgs) Handles LabelAvailableMemNum.Click
+
+    End Sub
+
+
+    Private Sub ButtonRunMc_Click_1(sender As Object, e As EventArgs) Handles ButtonRunMc.Click
+        iniSub(1)
+        'Shell(GetMcPath(), AppWinStyle.NormalNoFocus)
+        RunMc()
+        Application.Exit()
+    End Sub
+
+    Private Sub ButtonDefaultParameter_Click_1(sender As Object, e As EventArgs) Handles ButtonDefaultParameter.Click
+        MessageBox.Show("-XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseStringCache -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+UseAdaptiveSizePolicy -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:+UseCMSCompactAtFullCollection -XX:CMSFullGCsBeforeCompaction=1 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true ")
+    End Sub
+
+    Private Sub btnJava_Click(sender As Object, e As EventArgs) Handles btnJava.Click
+        OpenFileDialogJava.ShowDialog()
+        tbxJava.Text = OpenFileDialogJava.FileName.ToString
     End Sub
 End Class
 
