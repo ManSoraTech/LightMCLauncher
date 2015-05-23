@@ -12,39 +12,7 @@ Imports System.Text.RegularExpressions
 
 Public Class CoreClass
 
-    Public Function Down(ByVal strURL As String, strFileName As String)
-        If Strings.Right(strURL, 1) <> "/" Then strURL += "/"
-        Dim getRequest As HttpWebRequest = WebRequest.Create(strURL)
-        getRequest.Method = "GET"
-        getRequest.Accept = "*/*"
-        getRequest.UserAgent = "LightMCLauncher/0.1"
-        getRequest.KeepAlive = True
-        getRequest.Timeout = 8000
-        getRequest.AllowAutoRedirect = True
-        getRequest.CookieContainer = New CookieContainer()
-
-        Dim getResponse As HttpWebResponse = getRequest.GetResponse()
-
-
-        Dim fs As FileStream
-        Dim s As Stream = getResponse.GetResponseStream()
-        Dim bufint As Integer
-        Dim bufbytes(0) As Byte
-        fs = File.OpenWrite(strFileName)
-
-        Do
-            bufint = s.ReadByte()
-            If bufint = -1 Then Exit Do
-            bufbytes(0) = Convert.ToByte(bufint)
-            fs.Write(bufbytes, 0, bufbytes.Length)
-        Loop
-
-        fs.Close()
-        fs.Dispose()
-        s.Close()
-    End Function
-
-    Public Function Core(ByVal FunctionMode As Integer, Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "")
+    Public Function Core(ByVal FunctionMode As Integer, Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "", Optional ByVal JavaPath As String = Chr(34) & "java.exe" & Chr(34))
         Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
         Select Case FunctionMode
             Case 0
@@ -62,7 +30,7 @@ Public Class CoreClass
                 MinecraftJar = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
                 MainClass = json(Array.IndexOf(json, "mainClass") + 2)
 
-                strShell = Chr(34) & "java.exe" & Chr(34) & " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
+                strShell = Chr(34) + JavaPath + Chr(34) + " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
                 Return strShell
 
 
@@ -100,7 +68,7 @@ Public Class CoreClass
                     End If
 
                 Next
-                MinecraftArguments = MinecraftArguments.Replace("${game_directory}", ".minecraft\versions\" & FullVersion)
+                MinecraftArguments = MinecraftArguments.Replace("${game_directory}", Application.StartupPath + "\.minecraft\versions\" & FullVersion)
                 MinecraftArguments = MinecraftArguments.Replace("${assets_root}", ".minecraft\assets")
                 MinecraftArguments = MinecraftArguments.Replace("${game_assets}", ".minecraft\assets")
                 MinecraftArguments = MinecraftArguments.Replace("${user_type}", "Legacy")
@@ -194,23 +162,23 @@ Namespace eMZi.Gaming.Minecraft
         Private Shared ReadOnly Property MinecraftColors() As Dictionary(Of Char, String)
             ' Gets HTML colors associated with specific formatting codes
             Get
-                Return New Dictionary(Of Char, String)() From { _
-                 {"0"c, "#000000"}, _
-                 {"1"c, "#0000AA"}, _
-                 {"2"c, "#00AA00"}, _
-                 {"3"c, "#00AAAA"}, _
-                 {"4"c, "#AA0000"}, _
-                 {"5"c, "#AA00AA"}, _
-                 {"6"c, "#FFAA00"}, _
-                 {"7"c, "#AAAAAA"}, _
-                 {"8"c, "#555555"}, _
-                 {"9"c, "#5555FF"}, _
-                 {"a"c, "#55FF55"}, _
-                 {"b"c, "#55FFFF"}, _
-                 {"c"c, "#FF5555"}, _
-                 {"d"c, "#FF55FF"}, _
-                 {"e"c, "#FFFF55"}, _
-                 {"f"c, "#FFFFFF"} _
+                Return New Dictionary(Of Char, String)() From {
+                 {"0"c, "#000000"},
+                 {"1"c, "#0000AA"},
+                 {"2"c, "#00AA00"},
+                 {"3"c, "#00AAAA"},
+                 {"4"c, "#AA0000"},
+                 {"5"c, "#AA00AA"},
+                 {"6"c, "#FFAA00"},
+                 {"7"c, "#AAAAAA"},
+                 {"8"c, "#555555"},
+                 {"9"c, "#5555FF"},
+                 {"a"c, "#55FF55"},
+                 {"b"c, "#55FFFF"},
+                 {"c"c, "#FF5555"},
+                 {"d"c, "#FF55FF"},
+                 {"e"c, "#FFFF55"},
+                 {"f"c, "#FFFFFF"}
                 }
             End Get
         End Property
@@ -218,13 +186,13 @@ Namespace eMZi.Gaming.Minecraft
 
         Private Shared ReadOnly Property MinecraftStyles() As Dictionary(Of Char, String)
             Get
-                Return New Dictionary(Of Char, String)() From { _
-                 {"k"c, "none;font-weight:normal;font-style:normal"}, _
-                 {"m"c, "line-through;font-weight:normal;font-style:normal"}, _
-                 {"l"c, "none;font-weight:900;font-style:normal"}, _
-                 {"n"c, "underline;font-weight:normal;font-style:normal;"}, _
-                 {"o"c, "none;font-weight:normal;font-style:italic;"}, _
-                 {"r"c, "none;font-weight:normal;font-style:normal;color:#FFFFFF;"} _
+                Return New Dictionary(Of Char, String)() From {
+                 {"k"c, "none;font-weight:normal;font-style:normal"},
+                 {"m"c, "line-through;font-weight:normal;font-style:normal"},
+                 {"l"c, "none;font-weight:900;font-style:normal"},
+                 {"n"c, "underline;font-weight:normal;font-style:normal;"},
+                 {"o"c, "none;font-weight:normal;font-style:italic;"},
+                 {"r"c, "none;font-weight:normal;font-style:normal;color:#FFFFFF;"}
                 }
             End Get
         End Property
