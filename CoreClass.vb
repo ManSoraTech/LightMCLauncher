@@ -9,93 +9,110 @@ Imports System.Net.Sockets
 Imports System.Text
 Imports System.Text.RegularExpressions
 
+Namespace PeoLeser.Minecraft
+    Public Class CoreClass
 
-Public Class CoreClass
-
-    Public Function Core(ByVal FunctionMode As Integer, Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "", Optional ByVal JavaPath As String = Chr(34) & "java.exe" & Chr(34))
-        Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
-        Select Case FunctionMode
-            Case 0
-
-                Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
-                'get Forge path
-                strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
-                strAimPath = dirAimPathTemp.ToString & strForgeVersion & "\"
-                Dim strMcPara As String, strLibPath As String = Application.StartupPath & "\.minecraft\libraries\", strShell As String
-                Dim strTmpLib As String = Application.StartupPath & "\.minecraft\libraries\"
-                'set parameter
-                strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
-                strMcPara = strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\Native" & Chr(34)
-                Dim MainClass As String, MinecraftJar As String
-                MinecraftJar = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
-                MainClass = json(Array.IndexOf(json, "mainClass") + 2)
-
-                strShell = Chr(34) + JavaPath + Chr(34) + " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
-                Return strShell
+        Public Shared Function Core(ByVal FunctionMode As Integer, Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "")
+            Dim json As String() = File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json").Split(New String() {Chr(34)}, StringSplitOptions.RemoveEmptyEntries)
+            Select Case FunctionMode
+                Case 0
 
 
-            Case 1 'GetMinecraftLibrariesFiles
-                Dim i As Integer = 0
-                Dim MinecraftLibrariesFiles As String
-                For Each Keyword As String In json
-                    Dim RightString As String, LeftString As String, MiddleNumber As Integer
-                    i += 1
-                    If Keyword = "name" Then
+                    Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
+                    'get Forge path
+                    strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
+                    strAimPath = dirAimPathTemp.ToString & strForgeVersion & "\"
+                    Dim strMcPara As String, strLibPath As String = Application.StartupPath & "\.minecraft\libraries\", strShell As String
+                    Dim strTmpLib As String = Application.StartupPath & "\.minecraft\libraries\"
+                    'set parameter
+                    'strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
+                    strDefaultPara = " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
+                    strMcPara = strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\native" & Chr(34)
+                    Dim MainClass As String, MinecraftJar As String
+                    MinecraftJar = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
+                    MainClass = json(Array.IndexOf(json, "mainClass") + 2)
+
+                    strShell = " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
+                    'strShell = Chr(34) + JavaPath + Chr(34) + " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
+                    Return strShell
+
+
+                Case 1 'GetMinecraftLibrariesFiles
+                    Dim i As Integer = 0
+                    Dim MinecraftLibrariesFiles As String
+                    Dim RightString As String, LeftString As String, MiddleNumber As Integer, natives As String
+                    For i = 0 To UBound(json)
                         Try
-                            MiddleNumber = InStr(json(i + 1), ":")
-                            LeftString = Strings.Left(json(i + 1), MiddleNumber - 1)
-                            RightString = Strings.Right(json(i + 1), json(i + 1).Length - MiddleNumber)
-                            LeftString = Replace(LeftString, ".", "\")
-                            Dim RightString2() = RightString.Split({Chr(58)})
-                            MinecraftLibrariesFiles = MinecraftLibrariesFiles + ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + RightString2(0) + "\" + RightString2(1) + "\" + RightString2(0) + "-" + RightString2(1) + ".jar"
-                        Catch ex As Exception
-                            MessageBox.Show(json(i + 1))
+                            'If json(i) = "name" And json(i + 4) = "natives" And json(i - 2) <> "os" Then
+                            '    For p = i + 2 To UBound(json)
+                            '        If json(p) = "windows" Then
+                            '            natives = json(p + 2)
+                            '            Try
+                            '                MiddleNumber = InStr(json(i + 2), ":")
+                            '                LeftString = Replace(Left(json(i + 2), MiddleNumber - 1), ".", "\")
+                            '                RightString = Right(json(i + 2), json(i + 2).Length - MiddleNumber)
+                            '                MinecraftLibrariesFiles += ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + Replace(RightString, ":", "\") + "\" + Replace(RightString, ":", "-") + "-" + Replace(natives, "${arch}", System.Runtime.InteropServices.Marshal.SizeOf(IntPtr.Zero) * 8) + ".jar"
+                            '            Catch ex As ArgumentException
+                            '            End Try
+                            '        End If
+                            '    Next
+
+                            'End If
+
+
+                            If json(i) = "name" And (json(i + 4) <> "rules" And json(i + 4) <> "natives") Then
+                                MiddleNumber = InStr(json(i + 2), ":")
+                                LeftString = Replace(Left(json(i + 2), MiddleNumber - 1), ".", "\")
+                                RightString = Right(json(i + 2), json(i + 2).Length - MiddleNumber)
+                                MinecraftLibrariesFiles += ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + Replace(RightString, ":", "\") + "\" + Replace(RightString, ":", "-") + ".jar"
+                            End If
+                        Catch ex As IndexOutOfRangeException
                         End Try
+                    Next
+
+                    MinecraftLibrariesFiles = Strings.Right(MinecraftLibrariesFiles, MinecraftLibrariesFiles.Length - 1)
+                    'MinecraftLibrariesFiles = Right(MinecraftLibrariesFiles, Len(MinecraftLibrariesFiles) - 1)
+                    Return MinecraftLibrariesFiles
+
+                Case 2 'GetMinecraftArguments
+                    Dim MinecraftArguments As String, version As String = json(Array.IndexOf(json, "assets") + 2)
+
+                    For Each json2 As String In json
+                        If json2.Contains("--") Then
+                            MinecraftArguments = MinecraftArguments + " " + json2
+                            Exit For
+                        End If
+
+                    Next
+                    MinecraftArguments = MinecraftArguments.Replace("${game_directory}", Application.StartupPath + "\.minecraft\versions\" & FullVersion)
+                    MinecraftArguments = MinecraftArguments.Replace("${assets_root}", ".minecraft\assets")
+                    MinecraftArguments = MinecraftArguments.Replace("${game_assets}", ".minecraft\assets")
+                    MinecraftArguments = MinecraftArguments.Replace("${user_type}", "Legacy")
+                    MinecraftArguments = MinecraftArguments.Replace("${user_properties}", "{}")
+                    MinecraftArguments = MinecraftArguments.Replace("${auth_player_name}", Username)
+                    MinecraftArguments = MinecraftArguments.Replace("${version_name}", FullVersion)
+                    If MinecraftArguments.Contains("${assets_index_name}") Then
+                        MinecraftArguments = MinecraftArguments.Replace("${assets_index_name}", version)
                     End If
-                Next
-                MinecraftLibrariesFiles = Strings.Right(MinecraftLibrariesFiles, MinecraftLibrariesFiles.Length - 1)
-                'MinecraftLibrariesFiles = Right(MinecraftLibrariesFiles, Len(MinecraftLibrariesFiles) - 1)
 
-                Return MinecraftLibrariesFiles
+                    Return MinecraftArguments
+            End Select
+        End Function
 
-            Case 2 'GetMinecraftArguments
-                Dim MinecraftArguments As String, version As String = json(Array.IndexOf(json, "assets") + 2)
+        Private Declare Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Int32, ByVal lpFileName As String) As Int32
+        Private Declare Function WritePrivateProfileString Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpString As String, ByVal lpFileName As String) As Int32
 
-                For Each json2 As String In json
-                    If json2.Contains("--") Then
-                        MinecraftArguments = MinecraftArguments + " " + json2
-                        Exit For
-                    End If
+        Public Shared Function GetINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As String
+            Dim Str As String = LSet(Str, 256)
+            GetPrivateProfileString(Section, AppName, lpDefault, Str, Len(Str), FileName)
+            Return Left(Str, InStr(Str, Chr(0)) - 1)
+        End Function
 
-                Next
-                MinecraftArguments = MinecraftArguments.Replace("${game_directory}", Application.StartupPath + "\.minecraft\versions\" & FullVersion)
-                MinecraftArguments = MinecraftArguments.Replace("${assets_root}", ".minecraft\assets")
-                MinecraftArguments = MinecraftArguments.Replace("${game_assets}", ".minecraft\assets")
-                MinecraftArguments = MinecraftArguments.Replace("${user_type}", "Legacy")
-                MinecraftArguments = MinecraftArguments.Replace("${user_properties}", "{}")
-                MinecraftArguments = MinecraftArguments.Replace("${auth_player_name}", Username)
-                MinecraftArguments = MinecraftArguments.Replace("${version_name}", FullVersion)
-                If MinecraftArguments.Contains("${assets_index_name}") Then
-                    MinecraftArguments = MinecraftArguments.Replace("${assets_index_name}", version)
-                End If
-
-                Return MinecraftArguments
-        End Select
-    End Function
-
-    Private Declare Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Int32, ByVal lpFileName As String) As Int32
-    Private Declare Function WritePrivateProfileString Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpString As String, ByVal lpFileName As String) As Int32
-
-    Public Function GetINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As String
-        Dim Str As String = LSet(Str, 256)
-        GetPrivateProfileString(Section, AppName, lpDefault, Str, Len(Str), FileName)
-        Return Left(Str, InStr(Str, Chr(0)) - 1)
-    End Function
-
-    Public Function WriteINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As Long
-        WriteINI = WritePrivateProfileString(Section, AppName, lpDefault, FileName)
-    End Function
-End Class
+        Public Shared Function WriteINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As Long
+            WriteINI = WritePrivateProfileString(Section, AppName, lpDefault, FileName)
+        End Function
+    End Class
+End Namespace
 
 
 
