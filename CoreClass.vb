@@ -1,15 +1,3 @@
-Imports Microsoft.Win32
-Imports System.IO
-Imports System
-Imports System.ComponentModel
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Net
-Imports System.Net.Sockets
-Imports System.Text
-Imports System.Text.RegularExpressions
-
-
 ' ________    _______       ________      ___           ________      ________     
 '|\   __  \  |\  ___ \     |\   __  \    |\  \         |\   __  \    |\   __  \    
 '\ \  \|\  \ \ \   __/|    \ \  \|\  \   \ \  \        \ \  \|\  \   \ \  \|\ /_   
@@ -19,6 +7,16 @@ Imports System.Text.RegularExpressions
 '    \|__|       \|_______|    \|_______|    \|_______|    \|__|\|__|    \|_______|
 
 
+Imports System.IO
+Imports System
+Imports System.Net
+Imports System.Net.Sockets
+Imports System.Text
+Imports System.Text.RegularExpressions
+Imports System.Security.Cryptography
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
+
 Namespace PeoLeser.Minecraft
     Public Class CoreClass
 
@@ -27,7 +25,11 @@ Namespace PeoLeser.Minecraft
             Select Case FunctionMode
                 Case 0
 
-
+                    Dim strProxy As String = ""
+                    If MainForm.chbSocks5.CheckState = CheckState.Checked Then
+                        'strProxy = " -DsocksProxyHost=" + Chr(34) + MainForm.tbxSocks5Host.Text + Chr(34) + " -DsocksProxyPort=" + Chr(34) + MainForm.tbxSocks5Port.Text + Chr(34)
+                        'strProxy = " -Dhttp.proxyHost=" + Chr(34) + "119.144.71.44" + Chr(34) + " -Dhttp.proxyPort=" + Chr(34) + "9999" + Chr(34) + " -Dhttp.ProxySet=true"
+                    End If
                     Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
                     'get Forge path
                     strForgeVersion = dirAimPathTemp.GetDirectories.GetValue(0).ToString
@@ -37,19 +39,19 @@ Namespace PeoLeser.Minecraft
                     'set parameter
                     'strDefaultPara = " -XX:-UseVMInterruptibleIO -XX:NewRatio=3 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+CMSIncrementalPacing -XX:+AggressiveOpts -XX:+UseFastAccessorMethods -XX:+UseBiasedLocking -XX:+CMSParallelRemarkEnabled -XX:MaxGCPauseMillis=50 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -XX:+DisableExplicitGC -Xnoclassgc -oss4M -ss4M -XX:CMSInitiatingOccupancyFraction=60 -XX:SoftRefLRUPolicyMSPerMB=2048 -Xms800M -XX:ParallelGCThreads=" & System.Environment.ProcessorCount & " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
                     strDefaultPara = " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
-                    strMcPara = strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\native" & Chr(34)
+                    strMcPara = strproxy + strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\native" & Chr(34)
                     Dim MainClass As String, MinecraftJar As String
                     MinecraftJar = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
                     MainClass = json(Array.IndexOf(json, "mainClass") + 2)
 
-                    strShell = " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
+                    strShell = strMcPara + " -Xmx" & AvailableMem.ToString & "M" & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
                     'strShell = Chr(34) + JavaPath + Chr(34) + " -Xmx" & AvailableMem.ToString & "M" & strMcPara & " -cp " & Chr(34) & Core("1", , FullVersion, , ) + ";" + MinecraftJar & Chr(34) & " " & MainClass & " " & Core("2", , FullVersion, Username, )
                     Return strShell
 
 
                 Case 1 'GetMinecraftLibrariesFiles
                     Dim i As Integer = 0
-                    Dim MinecraftLibrariesFiles As String
+                    Dim MinecraftLibrariesFiles As String = ""
                     Dim RightString As String, LeftString As String, MiddleNumber As Integer, natives As String
                     For i = 0 To UBound(json)
                         Try
@@ -109,6 +111,54 @@ Namespace PeoLeser.Minecraft
             End Select
         End Function
 
+        Public Shared Function GetShell(Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "")
+            Dim MinecraftLibrariesFiles As String = ""
+            Dim strAimPath As String, strForgeVersion As String, strDefaultPara As String
+            Dim strMcPara As String
+            strDefaultPara = " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
+            strMcPara = strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\native" & Chr(34)
+
+            Dim strFullJson As String = Replace(Replace(File.ReadAllText(Directory.GetCurrentDirectory() + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".json"), vbCrLf, ""), vbTab, "")
+            Dim objFullJson As Object = DirectCast(JsonConvert.DeserializeObject(strFullJson), JObject)
+
+            For i = 0 To objFullJson.item("libraries").count - 1
+                Try
+                    Dim RightString As String, LeftString As String, MiddleNumber As Integer, natives As String
+                    Dim json As String = objFullJson.item("libraries").item(i).item("name").ToString
+                    'MsgBox(json)
+                    MiddleNumber = InStr(json, ":")
+                    LeftString = Replace(Left(json, MiddleNumber - 1), ".", "\")
+                    RightString = Right(json, json.Length - MiddleNumber)
+                    MinecraftLibrariesFiles += ";" + Application.StartupPath + "\.minecraft\libraries\" + LeftString + "\" + Replace(RightString, ":", "\") + "\" + Replace(RightString, ":", "-") + ".jar"
+                Catch ex As ArgumentOutOfRangeException
+                    MsgBox(ex.Message)
+                End Try
+            Next
+            MinecraftLibrariesFiles = Strings.Right(MinecraftLibrariesFiles, MinecraftLibrariesFiles.Length - 1)
+
+            Dim MinecraftArguments = objFullJson.item("minecraftArguments").ToString  '获取MinecraftArguments
+
+            Dim version As String = objFullJson.item("assets").ToString
+            MinecraftArguments = MinecraftArguments.Replace("${game_directory}", Application.StartupPath + "\.minecraft\versions\" & FullVersion)
+            MinecraftArguments = MinecraftArguments.Replace("${assets_root}", ".minecraft\assets")
+            MinecraftArguments = MinecraftArguments.Replace("${game_assets}", ".minecraft\assets")
+            MinecraftArguments = MinecraftArguments.Replace("${user_type}", "Legacy")
+            MinecraftArguments = MinecraftArguments.Replace("${user_properties}", "{}")
+            MinecraftArguments = MinecraftArguments.Replace("${auth_player_name}", Username)
+            MinecraftArguments = MinecraftArguments.Replace("${version_name}", FullVersion)
+            If MinecraftArguments.Contains("${assets_index_name}") Then
+                MinecraftArguments = MinecraftArguments.Replace("${assets_index_name}", Version)
+            End If
+
+            Dim mainClass As String = objFullJson.item("mainClass").ToString
+            Dim MinecraftJar As String = Application.StartupPath + "\.minecraft\versions\" + FullVersion + "\" + FullVersion + ".jar"
+            Dim strShell As String
+
+            strShell = strMcPara + " -Xmx" & AvailableMem.ToString & "M" & " -cp " & Chr(34) + MinecraftLibrariesFiles + ";" + MinecraftJar & Chr(34) & " " & mainClass & " " + MinecraftArguments
+
+            Return strShell
+        End Function
+
         Private Declare Function GetPrivateProfileString Lib "kernel32" Alias "GetPrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpDefault As String, ByVal lpReturnedString As String, ByVal nSize As Int32, ByVal lpFileName As String) As Int32
         Private Declare Function WritePrivateProfileString Lib "kernel32" Alias "WritePrivateProfileStringA" (ByVal lpApplicationName As String, ByVal lpKeyName As String, ByVal lpString As String, ByVal lpFileName As String) As Int32
 
@@ -120,6 +170,34 @@ Namespace PeoLeser.Minecraft
 
         Public Shared Function WriteINI(ByVal Section As String, ByVal AppName As String, ByVal lpDefault As String, ByVal FileName As String) As Long
             WriteINI = WritePrivateProfileString(Section, AppName, lpDefault, FileName)
+        End Function
+
+        Public Shared Function getMd5Hash(ByVal filePath As String) As String
+            Try
+                '创建MD5实例  
+                Dim md5Hasher As MD5 = MD5.Create()
+
+                '以字节形式读取文件  
+                Dim originalDate As Byte() = My.Computer.FileSystem.ReadAllBytes(filePath)
+
+                '计算MD5，Imports System.Security.Cryptography  
+                Dim data As Byte() = md5Hasher.ComputeHash(originalDate)
+
+                '创建可变字符串，Imports System.Text  
+                Dim sBuilder As New System.Text.StringBuilder()
+
+                ' 连接每一个 byte 的 hash 码，并格式化为十六进制字符串  
+                Dim i As Integer
+                For i = 0 To data.Length - 1
+                    sBuilder.Append(data(i).ToString("x2"))
+                Next i
+
+                Return sBuilder.ToString
+            Catch ex As FileNotFoundException
+                Return "1"
+            Catch ex As DirectoryNotFoundException
+                Return "1"
+            End Try
         End Function
     End Class
 End Namespace
