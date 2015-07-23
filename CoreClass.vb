@@ -5,7 +5,7 @@
 '  \ \  \___|  \ \  \_|\ \   \ \  \\\  \   \ \  \____    \ \  \ \  \   \ \  \|\  \ 
 '   \ \__\      \ \_______\   \ \_______\   \ \_______\   \ \__\ \__\   \ \_______\
 '    \|__|       \|_______|    \|_______|    \|_______|    \|__|\|__|    \|_______|
-
+'powered by 拖拉姬
 
 Imports System.IO
 Imports System
@@ -28,7 +28,6 @@ Namespace PeoLeser.Minecraft
                     Dim strProxy As String = ""
                     If MainForm.chbSocks5.CheckState = CheckState.Checked Then
                         'strProxy = " -DsocksProxyHost=" + Chr(34) + MainForm.tbxSocks5Host.Text + Chr(34) + " -DsocksProxyPort=" + Chr(34) + MainForm.tbxSocks5Port.Text + Chr(34)
-                        'strProxy = " -Dhttp.proxyHost=" + Chr(34) + "119.144.71.44" + Chr(34) + " -Dhttp.proxyPort=" + Chr(34) + "9999" + Chr(34) + " -Dhttp.ProxySet=true"
                     End If
                     Dim dirAimPathTemp As New IO.DirectoryInfo(Application.StartupPath & "\.minecraft\versions\"), strAimPath As String, strForgeVersion As String, strDefaultPara As String
                     'get Forge path
@@ -113,7 +112,7 @@ Namespace PeoLeser.Minecraft
 
         Public Shared Function GetShell(Optional ByVal AvailableMem As Integer = 4096, Optional ByVal FullVersion As String = "", Optional ByVal Username As String = "user", Optional ByVal CustomParameter As String = "")
             Dim MinecraftLibrariesFiles As String = ""
-            Dim strAimPath As String, strForgeVersion As String, strDefaultPara As String
+            Dim strDefaultPara As String
             Dim strMcPara As String
             strDefaultPara = " -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true "
             strMcPara = strDefaultPara & CustomParameter & "-Djava.library.path=" & Chr(34) & ".minecraft\native" & Chr(34)
@@ -375,4 +374,3 @@ Namespace eMZi.Gaming.Minecraft
         End Function
     End Class
 End Namespace
-
